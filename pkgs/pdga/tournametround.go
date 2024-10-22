@@ -1,6 +1,9 @@
 package pdga
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"strconv"
+)
 
 type WonPlayoff string
 
@@ -33,6 +36,10 @@ type Data struct {
 	TeeTimes    bool     `json:"tee_times"`
 	Holes       []Hole   `json:"holes"`
 	Scores      []Score  `json:"scores"`
+}
+
+func (s Score) TotalScore() int {
+    return int(s.PrevRndTotal) + int(s.RoundtoPar)
 }
 
 type Hole struct {
@@ -171,4 +178,25 @@ func (round TournamentRoundData) Top10() []Score {
     }
 
     return scores
+}
+
+func (score Score) HoleScoring() []int {
+    scores := make([]int, 0, len(score.HoleScores))
+    for _, scoreString := range score.HoleScores {
+        asInt, _ := strconv.Atoi(scoreString)
+        scores = append(scores, asInt)
+    }
+
+    return scores
+}
+
+func filterFunc[T any](data []T, filter func(item T) bool) []T {
+    returnData := make([]T, 0, len(data))
+    for _, item := range data {
+        if (filter(item)) {
+            returnData = append(returnData, item)
+        }
+    }
+
+    return returnData
 }

@@ -21,6 +21,6 @@ func main() {
     fmt.Printf("Tournament Name: %s\n", roundData.Data.Layouts[0].Name)
     
     for _, standing := range roundData.Top10() {
-        fmt.Printf("%d: %s %d\n", standing.RunningPlace, standing.Name, standing.RoundtoPar)
+        fmt.Printf("%d: %s %d\n", standing.RunningPlace, standing.Name, standing.TotalScore())
     }
 }
