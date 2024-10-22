@@ -28,3 +28,16 @@ func TestUnmarshalTournamentRound(t *testing.T) {
         t.Fatal("tournament round data hash is empty")
     }
 }
+
+func TestFetchTournamentRoundData(t *testing.T) {
+    client := pdga.NewClient()
+
+    tournamentData, err := client.FetchTournamentRound(77774, 2, pdga.Mpo)
+    if err != nil {
+        t.Fatalf("failed to fetch tournament round data: %v", err)
+    }
+
+    if tournamentData.Hash != "c28a4381c04257d7610e9bdb8ac84fd3" {
+        t.Fatalf("failed to get the valid hash for tournament round data")
+    }
+}
