@@ -2,6 +2,12 @@ package pdga
 
 import "encoding/json"
 
+type WonPlayoff string
+
+const (
+	No WonPlayoff = "no"
+)
+
 func UnmarshalTournamentRoundData(data []byte) (TournamentRoundData, error) {
 	var r TournamentRoundData
 	err := json.Unmarshal(data, &r)
@@ -153,8 +159,16 @@ type Score struct {
 	HoleScores          []string          `json:"HoleScores"`
 }
 
-type WonPlayoff string
+func (round TournamentRoundData) Top10() []Score {
+    scores := make([]Score, 0, 10)
 
-const (
-	No WonPlayoff = "no"
-)
+    for _, score := range round.Data.Scores {
+        if score.RunningPlace <= 10 {
+            scores = append(scores, score)
+        } else {
+            break;
+        }
+    }
+
+    return scores
+}

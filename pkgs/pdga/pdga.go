@@ -44,13 +44,11 @@ func (ct *Time) UnmarshalJSON(b []byte) (err error) {
 
 type Client struct {
     httpClient *http.Client
-    context context.Context
 }
 
 func NewClient(options ...Option) *Client {
     client := &Client{
         httpClient: http.DefaultClient,
-        context: context.Background(),
     }
     
     for _, option := range options {
@@ -60,9 +58,15 @@ func NewClient(options ...Option) *Client {
     return client
 }
 
-func (c *Client) FetchTournamentRound(tournamentId, roundNumber int, division Division) (TournamentRoundData, error) {
+func WithClient(client *http.Client) Option {
+    return func(c *Client) {
+        c.httpClient = client
+    }
+}
+
+func (c *Client) FetchTournamentRound(context context.Context, tournamentId, roundNumber int, division Division) (TournamentRoundData, error) {
     roundUrl := createTournamentRoundUrl(tournamentId, roundNumber, division)
-    req, err := http.NewRequestWithContext(c.context, "GET", roundUrl, nil)
+    req, err := http.NewRequestWithContext(context, "GET", roundUrl, nil)
     if err != nil {
         return TournamentRoundData{}, err
     }

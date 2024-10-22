@@ -1,8 +1,10 @@
 package pdga_test
 
 import (
+	"context"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/chadsmith12/pdga-scoring/pkgs/pdga"
 )
@@ -31,8 +33,10 @@ func TestUnmarshalTournamentRound(t *testing.T) {
 
 func TestFetchTournamentRoundData(t *testing.T) {
     client := pdga.NewClient()
-
-    tournamentData, err := client.FetchTournamentRound(77774, 2, pdga.Mpo)
+    
+    ctx, cancel := context.WithTimeout(context.Background(), time.Second * 2)
+    defer cancel()
+    tournamentData, err := client.FetchTournamentRound(ctx, 77774, 2, pdga.Mpo)
     if err != nil {
         t.Fatalf("failed to fetch tournament round data: %v", err)
     }
