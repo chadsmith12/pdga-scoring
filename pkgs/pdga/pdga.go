@@ -21,6 +21,7 @@ const (
 const ( 
     baseUrl = "https://www.pdga.com/apps/tournament/live-api"
     roundEndpoint = "live_results_fetch_round"
+    tournamentEndpoint = "live_results_fetch_event"
 )
 
 
@@ -64,6 +65,30 @@ func WithClient(client *http.Client) Option {
     }
 }
 
+func (c *Client) FetchTournamentInfo(ctx context.Context, tournamentId int) (TournamentInfo, error) {
+    tournamentUrl := createTournamentUrl(tournamentId)
+    req, err := http.NewRequestWithContext(ctx, "GET", tournamentUrl, nil)
+    if err != nil {
+        return TournamentInfo{}, err
+    }
+
+    resp, err := c.httpClient.Do(req)
+    if err != nil {
+        return TournamentInfo{}, err
+    }
+    if resp.StatusCode != 200 {
+        return TournamentInfo{}, fmt.Errorf("tournament info returned status code of %d", resp.StatusCode)
+    }
+
+    body := resp.Body
+    defer body.Close()
+
+    var tournamentData TournamentInfo
+    err = json.NewDecoder(body).Decode(&tournamentData)
+   
+    return tournamentData, err
+}
+
 func (c *Client) FetchTournamentRound(context context.Context, tournamentId, roundNumber int, division Division) (TournamentRoundData, error) {
     roundUrl := createTournamentRoundUrl(tournamentId, roundNumber, division)
     req, err := http.NewRequestWithContext(context, "GET", roundUrl, nil)
@@ -94,4 +119,8 @@ func (c *Client) FetchTournamentRound(context context.Context, tournamentId, rou
 
 func createTournamentRoundUrl(tournamentId, roundNumber int, division Division) string {
     return fmt.Sprintf("%s/%s?TournID=%d&Division=%s&Round=%d", baseUrl, roundEndpoint, tournamentId, division, roundNumber)
+}
+
+func createTournamentUrl(tournamentId int) string {
+    return fmt.Sprintf("%s/%s?TournID=%d", baseUrl, tournamentEndpoint, tournamentId)
 }

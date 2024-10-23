@@ -13,14 +13,26 @@ func main() {
     pdgaClient := pdga.NewClient()
     ctx, cancel := context.WithTimeout(context.Background(), time.Second * 10)
     defer cancel()
-    roundData, err := pdgaClient.FetchTournamentRound(ctx, 77774, 2, pdga.Mpo)
+    tournamentData, err := pdgaClient.FetchTournamentInfo(ctx, 77774)
     if err != nil {
         log.Fatal(err)
     }
 
-    fmt.Printf("Tournament Name: %s\n", roundData.Data.Layouts[0].Name)
+    tournamentRounds := make([]pdga.TournamentRoundData, 0, tournamentData.Data.Rounds)
+    for roundNumber := range tournamentData.Data.Rounds {
+        if (roundNumber == 0) { continue } 
+        fmt.Printf("Round: %d\n", roundNumber)
+        roundData, err := pdgaClient.FetchTournamentRound(ctx, 77774, int(roundNumber + 1), pdga.Mpo)
+        if err != nil {
+            log.Fatal(err)
+        }
+        tournamentRounds = append(tournamentRounds, roundData)
+    }
     
-    for _, standing := range roundData.Top10() {
-        fmt.Printf("%d: %s %d\n", standing.RunningPlace, standing.Name, standing.TotalScore())
+    roundData := pdga.TournamentRounds(tournamentRounds)
+    finals := roundData.FinalStandings()
+
+    for _, player := range finals {
+        fmt.Printf("%d: %s\n", player.RunningPlace, player.Name)
     }
 }
