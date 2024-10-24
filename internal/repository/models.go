@@ -26,6 +26,7 @@ type Player struct {
 	Name      string
 	FirstName string
 	LastName  string
+	Division  string
 }
 
 type Score struct {

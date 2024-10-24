@@ -9,8 +9,15 @@ import (
 	"context"
 )
 
+type CreatePlayersParams struct {
+	FirstName string
+	LastName  string
+	Name      string
+	Division  string
+}
+
 const getPlayers = `-- name: GetPlayers :many
-select id, name, first_name, last_name from players
+select id, name, first_name, last_name, division from players
 order by first_name
 `
 
@@ -28,6 +35,7 @@ func (q *Queries) GetPlayers(ctx context.Context) ([]Player, error) {
 			&i.Name,
 			&i.FirstName,
 			&i.LastName,
+			&i.Division,
 		); err != nil {
 			return nil, err
 		}

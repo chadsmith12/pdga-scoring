@@ -4,35 +4,66 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 
+	"github.com/chadsmith12/pdga-scoring/internal/database"
+	"github.com/chadsmith12/pdga-scoring/internal/repository"
+	"github.com/chadsmith12/pdga-scoring/internal/scoring"
 	"github.com/chadsmith12/pdga-scoring/pkgs/pdga"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-    pdgaClient := pdga.NewClient()
-    ctx, cancel := context.WithTimeout(context.Background(), time.Second * 10)
-    defer cancel()
-    tournamentData, err := pdgaClient.FetchTournamentInfo(ctx, 77774)
+    err := godotenv.Load()
     if err != nil {
         log.Fatal(err)
     }
 
-    tournamentRounds := make([]pdga.TournamentRoundData, 0, tournamentData.Data.Rounds)
-    for roundNumber := range tournamentData.Data.Rounds {
-        if (roundNumber == 0) { continue } 
-        fmt.Printf("Round: %d\n", roundNumber)
-        roundData, err := pdgaClient.FetchTournamentRound(ctx, 77774, int(roundNumber + 1), pdga.Mpo)
-        if err != nil {
-            log.Fatal(err)
-        }
-        tournamentRounds = append(tournamentRounds, roundData)
+    conn, err := database.Connect(context.Background())
+    if err != nil {
+        log.Fatal(err)
     }
-    
-    roundData := pdga.TournamentRounds(tournamentRounds)
-    finals := roundData.FinalStandings()
+    tournamentService := scoring.NewTournamentService(conn)
+    pdgaClient := pdga.NewClient()
+    tourneyInfo, err := pdgaClient.FetchTournamentInfo(context.Background(), 77774)
+    if err != nil {
+        log.Fatal(err)
+    }
+    insertedTourney, err := tournamentService.InsertTournament(context.Background(), tourneyInfo.Data, 77774)
+    if err != nil {
+        log.Fatal(err)
+    }
 
-    for _, player := range finals {
-        fmt.Printf("%d: %s\n", player.RunningPlace, player.Name)
+    fmt.Printf("Created Tournament: %s\n", insertedTourney.Name)
+    numberFpo, err := insertPlayers(pdgaClient, conn, pdga.Fpo)
+    if err != nil {
+        log.Fatal(err)
     }
+
+    numberMpo, err := insertPlayers(pdgaClient, conn, pdga.Mpo)
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Printf("Inserted a total of %d fpo and %d mpo players\n", numberFpo, numberMpo)
+}
+
+func insertPlayers(client *pdga.Client, conn *pgxpool.Pool, division pdga.Division) (int, error) {
+    players, err := pdga.FetchPlayers(client, 77774, division)
+    if err != nil {
+        return 0, err
+    }
+
+    newPlayers := make([]repository.CreatePlayersParams, 0, len(players))
+    for _, player := range players {
+        newPlayers = append(newPlayers, repository.CreatePlayersParams{
+            FirstName: player.FirstName,
+            LastName: player.LastName,
+            Name: player.Name,
+            Division: string(division),
+        })
+    }
+    repo := repository.New(conn)
+    numPlayers, err := repo.CreatePlayers(context.Background(), newPlayers)
+
+    return int(numPlayers), err
 }
