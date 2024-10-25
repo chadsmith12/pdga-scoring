@@ -4,6 +4,10 @@
 
 package repository
 
+import (
+	"github.com/jackc/pgx/v5/pgtype"
+)
+
 type HoleScore struct {
 	ID                 int64
 	PlayerID           int64
@@ -19,14 +23,19 @@ type Layout struct {
 	ID           int64
 	TournamentID int64
 	Name         string
+	CourseName   string
 }
 
 type Player struct {
-	ID        int64
-	Name      string
-	FirstName string
-	LastName  string
-	Division  string
+	ID         int64
+	Name       string
+	FirstName  string
+	LastName   string
+	Division   string
+	PdgaNumber pgtype.Int8
+	City       pgtype.Text
+	StateProv  pgtype.Text
+	Country    pgtype.Text
 }
 
 type Score struct {

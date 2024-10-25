@@ -124,3 +124,19 @@ type MultiLineName struct {
 	Main string `json:"main"`
 	Post string `json:"post"`
 }
+
+func (td TournamentData) NumberRounds() int {
+	numberRounds := len(td.RoundsList)
+	playoffRound := 0
+	for _, value := range td.RoundsList {
+		if value.Label == "Playoff" {
+			playoffRound = int(value.Number)
+		}
+	}
+
+	if td.HighestCompletedRound != int64(playoffRound) {
+		numberRounds--
+	}
+
+	return numberRounds
+}

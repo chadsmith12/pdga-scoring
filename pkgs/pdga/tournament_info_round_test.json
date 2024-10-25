@@ -1,0 +1,606 @@
+{
+    "data": {
+        "DateRange": "Oct 10-13, 2024",
+        "EndDate": "2024-10-13",
+        "Country": "United States",
+        "Location": "Rock Hill, South Carolina",
+        "LocationShort": "Rock Hill, SC",
+        "Divisions": [
+            {
+                "DivisionID": 105,
+                "Division": "FPO",
+                "DivisionName": "Women's Pro Open",
+                "Players": 51,
+                "LayoutAssignments": {
+                    "1": 690632,
+                    "2": 690050,
+                    "3": 690050,
+                    "12": 690038
+                },
+                "IsPro": true,
+                "ShortName": "Women's Pro Open",
+                "AbbreviatedName": "Women's Pro Open",
+                "LatestRound": "12"
+            }
+        ],
+        "Finals": "yes",
+        "HighestCompletedRound": 12,
+        "LatestRound": "12",
+        "FinalRound": 12,
+        "Layouts": [
+            {
+                "LayoutID": 690038,
+                "CourseID": 25306,
+                "CourseName": "Winthrop University Rec. Area",
+                "Name": "Winthrop Arena A",
+                "Holes": 18,
+                "Par": 69,
+                "Length": 8780,
+                "Units": "Feet",
+                "Accuracy": "M",
+                "Details": [
+                    {
+                        "Hole": "H1",
+                        "Label": "1",
+                        "Par": 3,
+                        "Length": 283
+                    },
+                    {
+                        "Hole": "H2",
+                        "Label": "2",
+                        "Par": 4,
+                        "Length": 542
+                    },
+                    {
+                        "Hole": "H3",
+                        "Label": "3",
+                        "Par": 5,
+                        "Length": 834
+                    },
+                    {
+                        "Hole": "H4",
+                        "Label": "4",
+                        "Par": 3,
+                        "Length": 249
+                    },
+                    {
+                        "Hole": "H5",
+                        "Label": "5",
+                        "Par": 5,
+                        "Length": 794
+                    },
+                    {
+                        "Hole": "H6",
+                        "Label": "6",
+                        "Par": 3,
+                        "Length": 282
+                    },
+                    {
+                        "Hole": "H7",
+                        "Label": "7",
+                        "Par": 3,
+                        "Length": 284
+                    },
+                    {
+                        "Hole": "H8",
+                        "Label": "8",
+                        "Par": 5,
+                        "Length": 697
+                    },
+                    {
+                        "Hole": "H9",
+                        "Label": "9",
+                        "Par": 4,
+                        "Length": 362
+                    },
+                    {
+                        "Hole": "H10",
+                        "Label": "10",
+                        "Par": 3,
+                        "Length": 331
+                    },
+                    {
+                        "Hole": "H11",
+                        "Label": "11",
+                        "Par": 4,
+                        "Length": 598
+                    },
+                    {
+                        "Hole": "H12",
+                        "Label": "12",
+                        "Par": 5,
+                        "Length": 901
+                    },
+                    {
+                        "Hole": "H13",
+                        "Label": "13",
+                        "Par": 4,
+                        "Length": 657
+                    },
+                    {
+                        "Hole": "H14",
+                        "Label": "14",
+                        "Par": 3,
+                        "Length": 261
+                    },
+                    {
+                        "Hole": "H15",
+                        "Label": "15",
+                        "Par": 4,
+                        "Length": 467
+                    },
+                    {
+                        "Hole": "H16",
+                        "Label": "16",
+                        "Par": 3,
+                        "Length": 342
+                    },
+                    {
+                        "Hole": "H17",
+                        "Label": "17",
+                        "Par": 3,
+                        "Length": 249
+                    },
+                    {
+                        "Hole": "H18",
+                        "Label": "18",
+                        "Par": 5,
+                        "Length": 647
+                    }
+                ]
+            },
+            {
+                "LayoutID": 690050,
+                "CourseID": 25306,
+                "CourseName": "Winthrop University Rec. Area",
+                "Name": "Winthrop Arena B",
+                "Holes": 18,
+                "Par": 69,
+                "Length": 8785,
+                "Units": "Feet",
+                "Accuracy": "M",
+                "Details": [
+                    {
+                        "Hole": "H1",
+                        "Label": "1",
+                        "Par": 3,
+                        "Length": 283
+                    },
+                    {
+                        "Hole": "H2",
+                        "Label": "2",
+                        "Par": 4,
+                        "Length": 542
+                    },
+                    {
+                        "Hole": "H3",
+                        "Label": "3",
+                        "Par": 5,
+                        "Length": 834
+                    },
+                    {
+                        "Hole": "H4",
+                        "Label": "4",
+                        "Par": 3,
+                        "Length": 249
+                    },
+                    {
+                        "Hole": "H5",
+                        "Label": "5",
+                        "Par": 5,
+                        "Length": 794
+                    },
+                    {
+                        "Hole": "H6",
+                        "Label": "6",
+                        "Par": 3,
+                        "Length": 282
+                    },
+                    {
+                        "Hole": "H7",
+                        "Label": "7",
+                        "Par": 3,
+                        "Length": 284
+                    },
+                    {
+                        "Hole": "H8",
+                        "Label": "8",
+                        "Par": 5,
+                        "Length": 697
+                    },
+                    {
+                        "Hole": "H9",
+                        "Label": "9",
+                        "Par": 4,
+                        "Length": 362
+                    },
+                    {
+                        "Hole": "H10",
+                        "Label": "10",
+                        "Par": 3,
+                        "Length": 331
+                    },
+                    {
+                        "Hole": "H11",
+                        "Label": "11",
+                        "Par": 4,
+                        "Length": 598
+                    },
+                    {
+                        "Hole": "H12",
+                        "Label": "12",
+                        "Par": 5,
+                        "Length": 901
+                    },
+                    {
+                        "Hole": "H13",
+                        "Label": "13",
+                        "Par": 4,
+                        "Length": 657
+                    },
+                    {
+                        "Hole": "H14",
+                        "Label": "14",
+                        "Par": 3,
+                        "Length": 261
+                    },
+                    {
+                        "Hole": "H15",
+                        "Label": "15",
+                        "Par": 4,
+                        "Length": 467
+                    },
+                    {
+                        "Hole": "H16",
+                        "Label": "16",
+                        "Par": 3,
+                        "Length": 342
+                    },
+                    {
+                        "Hole": "H17",
+                        "Label": "17",
+                        "Par": 3,
+                        "Length": 254
+                    },
+                    {
+                        "Hole": "H18",
+                        "Label": "18",
+                        "Par": 5,
+                        "Length": 647
+                    }
+                ]
+            },
+            {
+                "LayoutID": 690077,
+                "CourseID": 25306,
+                "CourseName": "Winthrop University Rec. Area",
+                "Name": "Playoff",
+                "Holes": 18,
+                "Par": 66,
+                "Length": 7074,
+                "Units": "Feet",
+                "Accuracy": "M",
+                "Details": [
+                    {
+                        "Hole": "H1",
+                        "Label": "1",
+                        "Par": 3,
+                        "Length": 283
+                    },
+                    {
+                        "Hole": "H2",
+                        "Label": "17",
+                        "Par": 3,
+                        "Length": 249
+                    },
+                    {
+                        "Hole": "H3",
+                        "Label": "18",
+                        "Par": 5,
+                        "Length": 647
+                    },
+                    {
+                        "Hole": "H4",
+                        "Label": "1",
+                        "Par": 3,
+                        "Length": 283
+                    },
+                    {
+                        "Hole": "H5",
+                        "Label": "17",
+                        "Par": 3,
+                        "Length": 249
+                    },
+                    {
+                        "Hole": "H6",
+                        "Label": "18",
+                        "Par": 5,
+                        "Length": 647
+                    },
+                    {
+                        "Hole": "H7",
+                        "Label": "1",
+                        "Par": 3,
+                        "Length": 283
+                    },
+                    {
+                        "Hole": "H8",
+                        "Label": "17",
+                        "Par": 3,
+                        "Length": 249
+                    },
+                    {
+                        "Hole": "H9",
+                        "Label": "18",
+                        "Par": 5,
+                        "Length": 647
+                    },
+                    {
+                        "Hole": "H10",
+                        "Label": "1",
+                        "Par": 3,
+                        "Length": 283
+                    },
+                    {
+                        "Hole": "H11",
+                        "Label": "17",
+                        "Par": 3,
+                        "Length": 249
+                    },
+                    {
+                        "Hole": "H12",
+                        "Label": "18",
+                        "Par": 5,
+                        "Length": 647
+                    },
+                    {
+                        "Hole": "H13",
+                        "Label": "1",
+                        "Par": 3,
+                        "Length": 283
+                    },
+                    {
+                        "Hole": "H14",
+                        "Label": "17",
+                        "Par": 3,
+                        "Length": 249
+                    },
+                    {
+                        "Hole": "H15",
+                        "Label": "18",
+                        "Par": 5,
+                        "Length": 647
+                    },
+                    {
+                        "Hole": "H16",
+                        "Label": "1",
+                        "Par": 3,
+                        "Length": 283
+                    },
+                    {
+                        "Hole": "H17",
+                        "Label": "17",
+                        "Par": 3,
+                        "Length": 249
+                    },
+                    {
+                        "Hole": "H18",
+                        "Label": "18",
+                        "Par": 5,
+                        "Length": 647
+                    }
+                ]
+            },
+            {
+                "LayoutID": 690632,
+                "CourseID": 25306,
+                "CourseName": "Winthrop University Rec. Area",
+                "Name": "Winthrop Arena A Rd1",
+                "Holes": 18,
+                "Par": 69,
+                "Length": 8780,
+                "Units": "Feet",
+                "Accuracy": "M",
+                "Details": [
+                    {
+                        "Hole": "H1",
+                        "Label": "1",
+                        "Par": 3,
+                        "Length": 283
+                    },
+                    {
+                        "Hole": "H2",
+                        "Label": "2",
+                        "Par": 4,
+                        "Length": 542
+                    },
+                    {
+                        "Hole": "H3",
+                        "Label": "3",
+                        "Par": 5,
+                        "Length": 834
+                    },
+                    {
+                        "Hole": "H4",
+                        "Label": "4",
+                        "Par": 3,
+                        "Length": 249
+                    },
+                    {
+                        "Hole": "H5",
+                        "Label": "5",
+                        "Par": 5,
+                        "Length": 794
+                    },
+                    {
+                        "Hole": "H6",
+                        "Label": "6",
+                        "Par": 3,
+                        "Length": 282
+                    },
+                    {
+                        "Hole": "H7",
+                        "Label": "7",
+                        "Par": 3,
+                        "Length": 284
+                    },
+                    {
+                        "Hole": "H8",
+                        "Label": "8",
+                        "Par": 5,
+                        "Length": 697
+                    },
+                    {
+                        "Hole": "H9",
+                        "Label": "9",
+                        "Par": 4,
+                        "Length": 362
+                    },
+                    {
+                        "Hole": "H10",
+                        "Label": "10",
+                        "Par": 3,
+                        "Length": 331
+                    },
+                    {
+                        "Hole": "H11",
+                        "Label": "11",
+                        "Par": 4,
+                        "Length": 598
+                    },
+                    {
+                        "Hole": "H12",
+                        "Label": "12",
+                        "Par": 5,
+                        "Length": 901
+                    },
+                    {
+                        "Hole": "H13",
+                        "Label": "13",
+                        "Par": 4,
+                        "Length": 657
+                    },
+                    {
+                        "Hole": "H14",
+                        "Label": "14",
+                        "Par": 3,
+                        "Length": 261
+                    },
+                    {
+                        "Hole": "H15",
+                        "Label": "15",
+                        "Par": 4,
+                        "Length": 467
+                    },
+                    {
+                        "Hole": "H16",
+                        "Label": "16",
+                        "Par": 3,
+                        "Length": 342
+                    },
+                    {
+                        "Hole": "H17",
+                        "Label": "17",
+                        "Par": 3,
+                        "Length": 249
+                    },
+                    {
+                        "Hole": "H18",
+                        "Label": "18",
+                        "Par": 5,
+                        "Length": 647
+                    }
+                ]
+            }
+        ],
+        "LayoutIDs": [
+            {
+                "Division": "FPO",
+                "Pool": "",
+                "1": 690632,
+                "2": 690050,
+                "3": 690050,
+                "4": null,
+                "5": null,
+                "6": null,
+                "7": null,
+                "8": null,
+                "9": null,
+                "10": null,
+                "11": null,
+                "12": 690038,
+                "13": 690077
+            }
+        ],
+        "Name": "Throw Pink Women's Disc Golf Championship",
+        "NameHtml": "Throw Pink Women's Disc Golf Championship",
+        "MultiLineName": {
+            "pre": "",
+            "main": "Throw Pink Women's Disc Golf Championship",
+            "post": ""
+        },
+        "MultiLineNameHtml": " <span class=\"event-name-main\">Throw Pink Women's Disc Golf Championship<\/span>",
+        "RawTier": "XA",
+        "Rounds": 3,
+        "RoundsList": {
+            "1": {
+                "Number": 1,
+                "Label": "Round 1",
+                "LabelAbbreviated": "Rd 1",
+                "Date": "2024-10-13",
+                "DateAbbreviated": "Oct 13",
+                "ShowDate": false
+            },
+            "2": {
+                "Number": 2,
+                "Label": "Round 2",
+                "LabelAbbreviated": "Rd 2",
+                "Date": "2024-10-13",
+                "DateAbbreviated": "Oct 13",
+                "ShowDate": false
+            },
+            "3": {
+                "Number": 3,
+                "Label": "Round 3",
+                "LabelAbbreviated": "Rd 3",
+                "Date": "2024-10-13",
+                "DateAbbreviated": "Oct 13",
+                "ShowDate": false
+            },
+            "12": {
+                "Number": 12,
+                "Label": "Finals",
+                "LabelAbbreviated": "F",
+                "Date": "2024-10-13",
+                "DateAbbreviated": "Oct 13",
+                "ShowDate": false
+            },
+            "13": {
+                "Number": 13,
+                "Label": "Playoff",
+                "LabelAbbreviated": "P",
+                "Date": "2024-10-13",
+                "DateAbbreviated": "Oct 13",
+                "ShowDate": false
+            }
+        },
+        "Semis": "no",
+        "SimpleName": "Throw Pink Women's Disc Golf Championship",
+        "StartDate": "2024-10-10",
+        "TDName": "Sara Nicholson",
+        "TDPDGANum": 33589,
+        "Tier": "A",
+        "FormattedTier": "A-Tier",
+        "FormattedLongTier": "XA-Tier",
+        "TierPro": "A",
+        "TierAm": "A",
+        "TierX": true,
+        "TotalPlayers": 51,
+        "TournamentId": "84345",
+        "International": true,
+        "FullStats": true,
+        "TimeZone": "America\/Detroit",
+        "AdditionalEventInfo": null
+    },
+    "hash": "6b47dcbd4bd213d969921554586e8548"
+}

@@ -28,3 +28,17 @@ func TestUnmarshallTournamentInfo(t *testing.T) {
 		t.Fatal("tournament data hash is empty")
 	}
 }
+
+func TestCalculateNumberRounds(t *testing.T) {
+	data := loadTestFile(t, "tournament_info_round_test.json")
+	
+	tournamentData, err := pdga.UnmarshalTournamentInfo(data)
+	if err != nil {
+		t.Fatalf("failed to unmarshall tournament data: %v", err)
+	}
+
+	numberRounds := tournamentData.Data.NumberRounds()
+	if numberRounds != 4 {
+		t.Fatalf("expected NumberRounds to be 4; got %d", numberRounds)
+	}
+}

@@ -33,6 +33,10 @@ func (r iteratorForCreatePlayers) Values() ([]interface{}, error) {
 		r.rows[0].LastName,
 		r.rows[0].Name,
 		r.rows[0].Division,
+		r.rows[0].PdgaNumber,
+		r.rows[0].City,
+		r.rows[0].StateProv,
+		r.rows[0].Country,
 	}, nil
 }
 
@@ -41,5 +45,5 @@ func (r iteratorForCreatePlayers) Err() error {
 }
 
 func (q *Queries) CreatePlayers(ctx context.Context, arg []CreatePlayersParams) (int64, error) {
-	return q.db.CopyFrom(ctx, []string{"players"}, []string{"first_name", "last_name", "name", "division"}, &iteratorForCreatePlayers{rows: arg})
+	return q.db.CopyFrom(ctx, []string{"players"}, []string{"first_name", "last_name", "name", "division", "pdga_number", "city", "state_prov", "country"}, &iteratorForCreatePlayers{rows: arg})
 }

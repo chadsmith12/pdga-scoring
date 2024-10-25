@@ -7,17 +7,23 @@ package repository
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type CreatePlayersParams struct {
-	FirstName string
-	LastName  string
-	Name      string
-	Division  string
+	FirstName  string
+	LastName   string
+	Name       string
+	Division   string
+	PdgaNumber pgtype.Int8
+	City       pgtype.Text
+	StateProv  pgtype.Text
+	Country    pgtype.Text
 }
 
 const getPlayers = `-- name: GetPlayers :many
-select id, name, first_name, last_name, division from players
+select id, name, first_name, last_name, division, pdga_number, city, state_prov, country from players
 order by first_name
 `
 
@@ -36,6 +42,10 @@ func (q *Queries) GetPlayers(ctx context.Context) ([]Player, error) {
 			&i.FirstName,
 			&i.LastName,
 			&i.Division,
+			&i.PdgaNumber,
+			&i.City,
+			&i.StateProv,
+			&i.Country,
 		); err != nil {
 			return nil, err
 		}

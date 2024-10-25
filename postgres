@@ -1,0 +1,49 @@
+create database pdga_scoring;
+\d
+\q
+truncate players restart identity;
+truncate players restart identity cascade;
+select * players;
+select * from players;
+\q
+\d
+\t
+\dt
+select * from schema_migrations;
+truncate schema_migrations;
+\q
+select * from players where division = 'MPO';
+select * from players where division = 'FPO';
+truncate players restart identity cascade;
+\q
+truncate tournaments restart identity cascade;
+truncate players restart identity cascade;
+\q
+select * from tournaments;
+select * from players where division = 'FPO';
+select * from players;
+\q
+\d
+\dt
+select * from tournaments;
+select * from players;
+truncate players restart identity cascade;
+truncate tournaments restart identity cascade;
+\dt
+truncate schema_migrations;
+clear
+\q
+truncate schema_migrations;
+\q
+truncate schema_migrations;
+truncate schema_migrations;
+truncate schema_migrations;
+truncate schema_migrations;
+truncate schema_migrations;
+truncate schema_migrations;
+truncate schema_migrations;
+drop pdga_scoring;
+drop "pdga_scoring";
+drop database pdga_scoring;
+switch postgres;
+\s postgres;
