@@ -16,7 +16,7 @@ type CreatePlayersParams struct {
 	LastName   string
 	Name       string
 	Division   string
-	PdgaNumber pgtype.Int8
+	PdgaNumber int64
 	City       pgtype.Text
 	StateProv  pgtype.Text
 	Country    pgtype.Text

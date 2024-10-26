@@ -32,7 +32,7 @@ type Player struct {
 	FirstName  string
 	LastName   string
 	Division   string
-	PdgaNumber pgtype.Int8
+	PdgaNumber int64
 	City       pgtype.Text
 	StateProv  pgtype.Text
 	Country    pgtype.Text
@@ -48,8 +48,12 @@ type Score struct {
 }
 
 type Tournament struct {
-	ID             int64
-	ExternalID     int64
-	Name           string
-	NumberOfRounds int32
+	ID         int64
+	ExternalID int64
+	Name       string
+	StartDate  pgtype.Date
+	EndDate    pgtype.Date
+	Tier       pgtype.Text
+	Location   pgtype.Text
+	Country    pgtype.Text
 }
