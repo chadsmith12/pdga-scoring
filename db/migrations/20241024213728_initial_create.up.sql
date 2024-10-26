@@ -3,7 +3,11 @@ create table if not exists tournaments (
   id bigint primary key generated always as identity,
   external_id bigint not null,
   name text not null,
-  number_of_rounds int not null
+  start_date date not null,
+  end_date date not null,
+  tier text,
+  location text,
+  country text
 );
 
 create table if not exists layouts (
@@ -57,20 +61,3 @@ create index if not exists idx_hole_scores_layout_id on hole_scores using btree 
 create index if not exists idx_hole_scores_round_number on hole_scores using btree (round_number);
 create index if not exists idx_players_pdga_number on players using btree (pdga_number);
 
-create or replace function check_round_number () returns trigger as $$
-BEGIN
-    IF NEW.round_number > (SELECT number_of_rounds FROM tournaments WHERE id = NEW.tournament_id) THEN
-        RAISE EXCEPTION 'Round number exceeds the number of rounds for the tournament';
-    END IF;
-    RETURN NEW;
-END;
-$$ language plpgsql;
-
--- Create triggers after table creation
-create or replace trigger check_round_number_before_insert_scores before insert or update on scores
-for each row
-execute function check_round_number ();
-
-create or replace trigger check_round_number_before_insert_hole_scores before insert or update on hole_scores
-for each row
-execute function check_round_number ();
