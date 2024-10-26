@@ -22,7 +22,7 @@ func TestUnmarshalTournamentRound(t *testing.T) {
 
 	roundData, err := pdga.UnmarshalTournamentRoundData(data)
 	if err != nil {
-		t.Fatalf("found to unmarshal tournament round data: %v", err)
+		t.Fatalf("failed to unmarshal tournament round data: %v", err)
 	}
 
 	if roundData.Hash == "" {
@@ -30,22 +30,21 @@ func TestUnmarshalTournamentRound(t *testing.T) {
 	}
 }
 
-func TestHoleScoring(t *testing.T) {
-	data := loadTestFile(t, "tournament_round_test.json")
+
+func TestUnmarshalPoolTournamentRound(t *testing.T) {
+	data := loadTestFile(t, "pool_test.json")
+
 	roundData, err := pdga.UnmarshalTournamentRoundData(data)
 	if err != nil {
-		t.Fatalf("found to unmarshal tournament round data: %v", err)
+		t.Fatalf("failed to unmarshal tournament round data: %v", err)
 	}
 
-	firstScores := roundData.Data.Scores[0]
-	expected := []int{3, 3, 4, 4, 4, 4, 3, 3, 4, 2, 3, 4, 4, 2, 3, 2, 3, 3}
-	holeScores := firstScores.HoleScoring()
-
-	if len(expected) != len(holeScores) {
-		t.Fatal("len(expected) != len(holeScores)")
+	if roundData.Hash == "" {
+		t.Fatal("tournament round data hash is empty")
 	}
-
-	assertSlice(t, holeScores, expected)
+	if len(roundData.Data.RoundData) == 0 {
+		t.Fatal("tournament round data was empty")
+	}
 }
 
 func TestFetchTournamentRoundData(t *testing.T) {

@@ -6,8 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
-	"time"
+	"os"
+	"path"
+	"path/filepath"
 )
 
 type Option func(*Client)
@@ -24,23 +25,66 @@ const (
     tournamentEndpoint = "live_results_fetch_event"
 )
 
+var defaultClient = NewClient()
 
-const dateTimeFormat = time.DateTime
-
-type Time struct {
-    time.Time
-}
-
-func (ct *Time) UnmarshalJSON(b []byte) (err error) {
-    s := strings.Trim(string(b), "\"")
-    if s == "null" {
-        ct.Time = time.Time{}
-        return 
+func DownloadTournament(basePath string, tournamentId int) error {
+    tournament, err := defaultClient.FetchTournamentInfo(context.Background(), tournamentId)
+    if err != nil {
+        return err
+    }
+    
+    data, err := json.Marshal(tournament)
+    if err != nil {
+        return err
+    }
+    
+    tournamentPath := path.Join(basePath, fmt.Sprintf("%d", tournamentId), "tournament.json")
+    if err := os.MkdirAll(filepath.Dir(tournamentPath), 0755); err != nil {
+        return err
     }
 
-    ct.Time, err = time.Parse(dateTimeFormat, s)
+    return os.WriteFile(tournamentPath, data, 0755)
+}
 
-    return
+func DownloadRoundData(basePath string, tournamentId, roundNumber int) error {
+    mpoRound, err := defaultClient.FetchTournamentRound(context.Background(), tournamentId, roundNumber, Mpo)
+    if err != nil {
+        return err
+    }
+    mpoData, err := json.Marshal(mpoRound)
+    if err != nil {
+        return err
+    }
+
+    if err := writeDivisionRound(basePath, tournamentId, roundNumber, Mpo, mpoData); err != nil {
+        return err
+    }
+
+
+    fpoRound, err := defaultClient.FetchTournamentRound(context.Background(), tournamentId, roundNumber, Fpo)
+    if err != nil {
+        return err
+    }
+
+    fpoData, err := json.Marshal(fpoRound)
+    if err != nil {
+        return err
+    }
+
+    if err := writeDivisionRound(basePath, tournamentId, roundNumber, Fpo, fpoData); err != nil {
+        return err
+    }
+
+    return nil
+}
+
+func writeDivisionRound(basePath string, tournamentId, roundNumber int, division Division, data []byte) error {
+    path := path.Join(basePath, fmt.Sprintf("%d", tournamentId), fmt.Sprintf("%s-%d.json", division, roundNumber))
+    if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+        return err
+    }
+    
+    return os.WriteFile(path, data, 0755)
 }
 
 type Client struct {
@@ -89,29 +133,29 @@ func (c *Client) FetchTournamentInfo(ctx context.Context, tournamentId int) (Tou
     return tournamentData, err
 }
 
-func (c *Client) FetchTournamentRound(context context.Context, tournamentId, roundNumber int, division Division) (TournamentRoundData, error) {
+func (c *Client) FetchTournamentRound(context context.Context, tournamentId, roundNumber int, division Division) (TournamentRoundResponse, error) {
     roundUrl := createTournamentRoundUrl(tournamentId, roundNumber, division)
     req, err := http.NewRequestWithContext(context, "GET", roundUrl, nil)
     if err != nil {
-        return TournamentRoundData{}, err
+        return TournamentRoundResponse{}, err
     }
 
     resp, err := c.httpClient.Do(req)
     if err != nil {
-        return TournamentRoundData{}, err
+        return TournamentRoundResponse{}, err
     }
 
     if resp.StatusCode != 200 {
-        return TournamentRoundData{}, errors.New(fmt.Sprintf("round results returned status code of %d", resp.StatusCode))
+        return TournamentRoundResponse{}, errors.New(fmt.Sprintf("round results returned status code of %d", resp.StatusCode))
     }
 
     body := resp.Body
     defer body.Close()
     
-    var tournamentRoundData TournamentRoundData
+    var tournamentRoundData TournamentRoundResponse
     err = json.NewDecoder(body).Decode(&tournamentRoundData)
     if err != nil {
-        return TournamentRoundData{}, err
+        return TournamentRoundResponse{}, err
     }
 
     return tournamentRoundData, nil

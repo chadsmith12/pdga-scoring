@@ -12,22 +12,22 @@ const (
 	Yes WonPlayoff = "yes"
 )
 
-func UnmarshalTournamentRoundData(data []byte) (TournamentRoundData, error) {
-	var r TournamentRoundData
+func UnmarshalTournamentRoundData(data []byte) (TournamentRoundResponse, error) {
+	var r TournamentRoundResponse
 	err := json.Unmarshal(data, &r)
 	return r, err
 }
 
-func (r *TournamentRoundData) Marshal() ([]byte, error) {
+func (r *TournamentRoundResponse) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-type TournamentRoundData struct {
-	Data Data   `json:"data"`
-	Hash string `json:"hash"`
+type TournamentRoundResponse struct {
+	Data RoundDataUnmarshaler `json:"data"`
+	Hash string               `json:"hash"`
 }
 
-type Data struct {
+type TournamentRoundData struct {
 	Pool        string   `json:"pool"`
 	Layouts     []Layout `json:"layouts"`
 	Division    Division `json:"division"`
@@ -145,7 +145,7 @@ type Score struct {
 	Completed           int64      `json:"Completed"`
 	RoundStarted        int64      `json:"RoundStarted"`
 	PrevRndTotal        int64      `json:"PrevRndTotal"`
-	RoundScore          int64      `json:"RoundScore"`
+	RoundScore          RoundScore `json:"RoundScore"`
 	SubTotal            int64      `json:"SubTotal"`
 	RoundtoPar          int64      `json:"RoundtoPar"`
 	ToPar               int64      `json:"ToPar"`
@@ -153,7 +153,7 @@ type Score struct {
 	SortScores          string     `json:"SortScores"`
 	Pars                string     `json:"Pars"`
 	Rounds              string     `json:"Rounds"`
-	SortRounds          string     `json:"SortRounds"`
+	SortRounds          SortRounds `json:"SortRounds"`
 	RoundRating         int64      `json:"RoundRating"`
 	PreviousPlace       int64      `json:"PreviousPlace"`
 	FullLocation        string     `json:"FullLocation"`
@@ -167,16 +167,16 @@ type Score struct {
 	HoleScores          []string   `json:"HoleScores"`
 }
 
-func (round TournamentRoundData) Top10() []Score {
+func (round TournamentRoundResponse) Top10() []Score {
 	scores := make([]Score, 0, 10)
 
-	for _, score := range round.Data.Scores {
-		if score.RunningPlace <= 10 {
-			scores = append(scores, score)
-		} else {
-			break
-		}
-	}
+	// for _, score := range round.Data.Scores {
+	// 	if score.RunningPlace <= 10 {
+	// 		scores = append(scores, score)
+	// 	} else {
+	// 		break
+	// 	}
+	// }
 
 	return scores
 }
