@@ -5,6 +5,8 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -51,8 +53,8 @@ type Tournament struct {
 	ID         int64
 	ExternalID int64
 	Name       string
-	StartDate  pgtype.Date
-	EndDate    pgtype.Date
+	StartDate  time.Time
+	EndDate    time.Time
 	Tier       pgtype.Text
 	Location   pgtype.Text
 	Country    pgtype.Text

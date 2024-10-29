@@ -1,6 +1,9 @@
 package pdga
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"strconv"
+)
 
 func UnmarshalTournamentInfo(data []byte) (TournamentInfo, error) {
 	var r TournamentInfo
@@ -139,4 +142,10 @@ func (td TournamentData) NumberRounds() int {
 	}
 
 	return numberRounds
+}
+
+// Attempts to get the tournament id as an int.
+// TODO: See about tourning this into a separate type to compare later?
+func (t TournamentInfo) IdAsInt() (int, error) {
+	return strconv.Atoi(t.Data.TournamentID)
 }

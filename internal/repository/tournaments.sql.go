@@ -7,6 +7,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -20,8 +21,8 @@ returning id, external_id, name, start_date, end_date, tier, location, country
 type CreateTournamentParams struct {
 	ExternalID int64
 	Name       string
-	StartDate  pgtype.Date
-	EndDate    pgtype.Date
+	StartDate  time.Time
+	EndDate    time.Time
 	Tier       pgtype.Text
 	Location   pgtype.Text
 	Country    pgtype.Text

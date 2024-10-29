@@ -9,3 +9,8 @@ sql:
         package: "repository"
         out: "internal/repository"
         sql_package: "pgx/v5"
+        overrides:
+          - db_type: "date"
+            go_type:
+              import: "time"
+              type: "Time"
