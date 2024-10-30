@@ -1,11 +1,14 @@
 package extractor
 
 import (
+	"cmp"
 	"context"
 	"log/slog"
+	"slices"
 	"sync"
 	"time"
 
+	"github.com/chadsmith12/pdga-scoring/internal/cache"
 	"github.com/chadsmith12/pdga-scoring/internal/database"
 	"github.com/chadsmith12/pdga-scoring/internal/repository"
 	"github.com/chadsmith12/pdga-scoring/pkgs/pdga"
@@ -85,6 +88,7 @@ func (service *TournamentExtrator) processTournament(ctx context.Context, id int
 func (service *TournamentExtrator) processLayouts(ctx context.Context, dbTournamentId int, tourneyInfo pdga.TournamentInfo) {
 	layouts := tourneyInfo.Data.Layouts
 	dbLayouts := make([]repository.CreateManyLayoutsParams, 0, len(layouts))
+
 	for _, layout := range layouts {
 		if layout.CourseID == -1 {
 			continue
@@ -104,6 +108,7 @@ func (service *TournamentExtrator) processLayouts(ctx context.Context, dbTournam
 	results.Exec(func(i int, err error) {
 		if err != nil {
 			service.logger.Warn("failed to insert layout", slog.Int("index", i), slog.Any("err", err))
+			return
 		}
 	})
 	results.Close()

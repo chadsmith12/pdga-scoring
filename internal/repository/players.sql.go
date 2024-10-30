@@ -22,6 +22,35 @@ type CreatePlayersParams struct {
 	Country    pgtype.Text
 }
 
+const getPlayerPdgaNumbers = `-- name: GetPlayerPdgaNumbers :many
+select id, pdga_number from players
+`
+
+type GetPlayerPdgaNumbersRow struct {
+	ID         int64
+	PdgaNumber int64
+}
+
+func (q *Queries) GetPlayerPdgaNumbers(ctx context.Context) ([]GetPlayerPdgaNumbersRow, error) {
+	rows, err := q.db.Query(ctx, getPlayerPdgaNumbers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPlayerPdgaNumbersRow
+	for rows.Next() {
+		var i GetPlayerPdgaNumbersRow
+		if err := rows.Scan(&i.ID, &i.PdgaNumber); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPlayers = `-- name: GetPlayers :many
 select id, name, first_name, last_name, division, pdga_number, city, state_prov, country from players
 order by first_name

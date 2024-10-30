@@ -7,47 +7,29 @@ package repository
 
 import (
 	"context"
-	"time"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createTournament = `-- name: CreateTournament :one
-insert into tournaments (external_id, name, start_date, end_date, tier, location, country)
-values ($1, $2, $3, $4, $5, $6, $7)
-returning id, external_id, name, start_date, end_date, tier, location, country
+const getLayoutIdsByTournament = `-- name: GetLayoutIdsByTournament :many
+select id from layouts
+where tournament_id = $1
 `
 
-type CreateTournamentParams struct {
-	ExternalID int64
-	Name       string
-	StartDate  time.Time
-	EndDate    time.Time
-	Tier       pgtype.Text
-	Location   pgtype.Text
-	Country    pgtype.Text
-}
-
-func (q *Queries) CreateTournament(ctx context.Context, arg CreateTournamentParams) (Tournament, error) {
-	row := q.db.QueryRow(ctx, createTournament,
-		arg.ExternalID,
-		arg.Name,
-		arg.StartDate,
-		arg.EndDate,
-		arg.Tier,
-		arg.Location,
-		arg.Country,
-	)
-	var i Tournament
-	err := row.Scan(
-		&i.ID,
-		&i.ExternalID,
-		&i.Name,
-		&i.StartDate,
-		&i.EndDate,
-		&i.Tier,
-		&i.Location,
-		&i.Country,
-	)
-	return i, err
+func (q *Queries) GetLayoutIdsByTournament(ctx context.Context, tournamentID int64) ([]int64, error) {
+	rows, err := q.db.Query(ctx, getLayoutIdsByTournament, tournamentID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

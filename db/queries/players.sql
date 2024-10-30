@@ -19,3 +19,6 @@ values (
     sqlc.arg(country)
 )
 on conflict (pdga_number) do nothing;
+
+-- name: GetPlayerPdgaNumbers :many
+select id, pdga_number from players;
