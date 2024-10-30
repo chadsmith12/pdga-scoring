@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/chadsmith12/pdga-scoring/internal/database"
 	"github.com/chadsmith12/pdga-scoring/internal/repository"
 	"github.com/chadsmith12/pdga-scoring/pkgs/pdga"
 	"github.com/chadsmith12/pdga-scoring/pkgs/utils"
@@ -71,13 +72,41 @@ func (service *TournamentExtrator) processTournament(ctx context.Context, id int
 		return
 	}
 	model := newCreateTournamentParams(id, tourneyInfo)
-	_, err = service.store.CreateTournament(context.Background(), model)
+	dbTourney, err := service.store.CreateTournament(context.Background(), model)
 	if err != nil {
 		service.logger.Warn("failed to create tournament", slog.Int64("id", int64(id)), slog.Any("error", err))
 		return
 	}
 	tournamentRounds := pdga.FullTournamentRound(service.extractRounds(ctx, tourneyInfo))
+	service.processLayouts(ctx, int(dbTourney.ID), tourneyInfo)
 	service.insertPlayers(ctx, tournamentRounds.Players())
+}
+
+func (service *TournamentExtrator) processLayouts(ctx context.Context, dbTournamentId int, tourneyInfo pdga.TournamentInfo) {
+	layouts := tourneyInfo.Data.Layouts
+	dbLayouts := make([]repository.CreateManyLayoutsParams, 0, len(layouts))
+	for _, layout := range layouts {
+		if layout.CourseID == -1 {
+			continue
+		}
+		dbLayout := repository.CreateManyLayoutsParams{
+			TournamentID: int64(dbTournamentId),
+			Name:         layout.Name,
+			CourseName:   layout.CourseName,
+			Length:       database.IntToPgInt(int(layout.Length)),
+			Units:        database.StringToPgText(layout.Units),
+			Holes:        database.IntToPgInt(int(layout.Holes)),
+			Par:          database.IntToPgInt(int(layout.Par)),
+		}
+		dbLayouts = append(dbLayouts, dbLayout)
+	}
+	results := service.store.CreateManyLayouts(ctx, dbLayouts)
+	results.Exec(func(i int, err error) {
+		if err != nil {
+			service.logger.Warn("failed to insert layout", slog.Int("index", i), slog.Any("err", err))
+		}
+	})
+	results.Close()
 }
 
 func (service *TournamentExtrator) extractRounds(ctx context.Context, tourneyInfo pdga.TournamentInfo) []pdga.TournamentRoundResponse {

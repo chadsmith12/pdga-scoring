@@ -26,6 +26,10 @@ type Layout struct {
 	TournamentID int64
 	Name         string
 	CourseName   string
+	Length       pgtype.Int4
+	Units        pgtype.Text
+	Holes        pgtype.Int4
+	Par          pgtype.Int4
 }
 
 type Player struct {

@@ -17,6 +17,67 @@ var (
 	ErrBatchAlreadyClosed = errors.New("batch already closed")
 )
 
+const createManyLayouts = `-- name: CreateManyLayouts :batchexec
+insert into layouts (tournament_id, name, course_name, length, units, holes, par)
+values ($1, $2, $3, $4, $5, $6, $7)
+returning id, tournament_id, name, course_name, length, units, holes, par
+`
+
+type CreateManyLayoutsBatchResults struct {
+	br     pgx.BatchResults
+	tot    int
+	closed bool
+}
+
+type CreateManyLayoutsParams struct {
+	TournamentID int64
+	Name         string
+	CourseName   string
+	Length       pgtype.Int4
+	Units        pgtype.Text
+	Holes        pgtype.Int4
+	Par          pgtype.Int4
+}
+
+func (q *Queries) CreateManyLayouts(ctx context.Context, arg []CreateManyLayoutsParams) *CreateManyLayoutsBatchResults {
+	batch := &pgx.Batch{}
+	for _, a := range arg {
+		vals := []interface{}{
+			a.TournamentID,
+			a.Name,
+			a.CourseName,
+			a.Length,
+			a.Units,
+			a.Holes,
+			a.Par,
+		}
+		batch.Queue(createManyLayouts, vals...)
+	}
+	br := q.db.SendBatch(ctx, batch)
+	return &CreateManyLayoutsBatchResults{br, len(arg), false}
+}
+
+func (b *CreateManyLayoutsBatchResults) Exec(f func(int, error)) {
+	defer b.br.Close()
+	for t := 0; t < b.tot; t++ {
+		if b.closed {
+			if f != nil {
+				f(t, ErrBatchAlreadyClosed)
+			}
+			continue
+		}
+		_, err := b.br.Exec()
+		if f != nil {
+			f(t, err)
+		}
+	}
+}
+
+func (b *CreateManyLayoutsBatchResults) Close() error {
+	b.closed = true
+	return b.br.Close()
+}
+
 const createManyPlayers = `-- name: CreateManyPlayers :batchexec
 insert into players (first_name, last_name, name, division, pdga_number, city, state_prov, country)
 values (
