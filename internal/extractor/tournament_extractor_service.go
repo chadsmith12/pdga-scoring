@@ -1,19 +1,15 @@
 package extractor
 
 import (
-	"cmp"
 	"context"
 	"log/slog"
-	"slices"
 	"sync"
 	"time"
 
-	"github.com/chadsmith12/pdga-scoring/internal/cache"
 	"github.com/chadsmith12/pdga-scoring/internal/database"
 	"github.com/chadsmith12/pdga-scoring/internal/repository"
 	"github.com/chadsmith12/pdga-scoring/pkgs/pdga"
 	"github.com/chadsmith12/pdga-scoring/pkgs/utils"
-	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/time/rate"
 )
 
@@ -81,11 +77,37 @@ func (service *TournamentExtrator) processTournament(ctx context.Context, id int
 		return
 	}
 	tournamentRounds := pdga.FullTournamentRound(service.extractRounds(ctx, tourneyInfo))
-	service.processLayouts(ctx, int(dbTourney.ID), tourneyInfo)
+	service.processLayouts(ctx, dbTourney.ExternalID, tourneyInfo)
 	service.insertPlayers(ctx, tournamentRounds.Players())
+	service.insertRoundScores(ctx, dbTourney.ExternalID, tournamentRounds)
 }
 
-func (service *TournamentExtrator) processLayouts(ctx context.Context, dbTournamentId int, tourneyInfo pdga.TournamentInfo) {
+func (service *TournamentExtrator) insertRoundScores(ctx context.Context, tournamentId int64, fullRound pdga.FullTournamentRound) {
+	scores := make([]repository.CreateRoundScoresParams, 0, 18)
+	for _, poolRound := range fullRound {
+		for _, round := range poolRound.Data.RoundData {
+			for _, score := range round.Scores {
+				roundScore := repository.CreateRoundScoresParams{
+					PlayerID:     score.PDGANum,
+					TournamentID: tournamentId,
+					LayoutID:     score.LayoutID,
+					RoundNumber:  int32(score.Round),
+					Score:        int32(score.RoundtoPar),
+				}
+				scores = append(scores, roundScore)
+			}	
+		}
+	}
+
+	results := service.store.CreateRoundScores(ctx, scores)
+	results.Exec(func(i int, err error) {
+		if err != nil {
+			service.logger.Warn("failed to insert score", slog.Int("index", i), slog.Any("err", err))
+		}
+	})
+}
+
+func (service *TournamentExtrator) processLayouts(ctx context.Context, externalId int64, tourneyInfo pdga.TournamentInfo) {
 	layouts := tourneyInfo.Data.Layouts
 	dbLayouts := make([]repository.CreateManyLayoutsParams, 0, len(layouts))
 
@@ -94,7 +116,8 @@ func (service *TournamentExtrator) processLayouts(ctx context.Context, dbTournam
 			continue
 		}
 		dbLayout := repository.CreateManyLayoutsParams{
-			TournamentID: int64(dbTournamentId),
+			ID:           layout.LayoutID,
+			TournamentID: externalId,
 			Name:         layout.Name,
 			CourseName:   layout.CourseName,
 			Length:       database.IntToPgInt(int(layout.Length)),
@@ -156,7 +179,6 @@ func (service *TournamentExtrator) insertPlayers(ctx context.Context, players []
 
 	results := service.store.CreateManyPlayers(ctx, playersToInsert)
 	results.Exec(func(i int, err error) {})
-//	results.Close()
 }
 
 func (service *TournamentExtrator) extractRound(roundNumber, tournamentId int, division pdga.Division) (pdga.TournamentRoundResponse, error) {
@@ -172,9 +194,9 @@ func newCreatePlayer(player pdga.RoundPlayer) repository.CreateManyPlayersParams
 		Name:       player.Name,
 		Division:   string(player.PlayerDivison),
 		PdgaNumber: player.PdgaNumber,
-		City:       pgtype.Text{String: player.City, Valid: true},
-		StateProv:  pgtype.Text{String: player.StateProv, Valid: true},
-		Country:    pgtype.Text{String: player.Country, Valid: true},
+		City: database.StringToPgText(player.City),
+		StateProv: database.StringToPgText(player.StateProv),
+		Country: database.StringToPgText(player.Country),
 	}
 }
 
@@ -184,9 +206,9 @@ func newCreateTournamentParams(id int, tourneyInfo pdga.TournamentInfo) reposito
 		Name:       tourneyInfo.Data.Name,
 		StartDate:  toDate(tourneyInfo.Data.StartDate),
 		EndDate:    toDate(tourneyInfo.Data.EndDate),
-		Tier:       pgtype.Text{String: tourneyInfo.Data.Tier, Valid: true},
-		Location:   pgtype.Text{String: tourneyInfo.Data.Location, Valid: true},
-		Country:    pgtype.Text{String: tourneyInfo.Data.Country, Valid: true},
+		Tier:       database.StringToPgText(tourneyInfo.Data.Tier),
+		Location:   database.StringToPgText(tourneyInfo.Data.Location),
+		Country:    database.StringToPgText(tourneyInfo.Data.Country),
 	}
 }
 

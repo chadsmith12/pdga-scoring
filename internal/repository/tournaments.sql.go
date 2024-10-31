@@ -15,7 +15,7 @@ import (
 const createTournament = `-- name: CreateTournament :one
 insert into tournaments (external_id, name, start_date, end_date, tier, location, country)
 values ($1, $2, $3, $4, $5, $6, $7)
-returning id, external_id, name, start_date, end_date, tier, location, country
+returning external_id, name, start_date, end_date, tier, location, country
 `
 
 type CreateTournamentParams struct {
@@ -40,7 +40,6 @@ func (q *Queries) CreateTournament(ctx context.Context, arg CreateTournamentPara
 	)
 	var i Tournament
 	err := row.Scan(
-		&i.ID,
 		&i.ExternalID,
 		&i.Name,
 		&i.StartDate,

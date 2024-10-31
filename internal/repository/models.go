@@ -33,12 +33,11 @@ type Layout struct {
 }
 
 type Player struct {
-	ID         int64
+	PdgaNumber int64
 	Name       string
 	FirstName  string
 	LastName   string
 	Division   string
-	PdgaNumber int64
 	City       pgtype.Text
 	StateProv  pgtype.Text
 	Country    pgtype.Text
@@ -54,7 +53,6 @@ type Score struct {
 }
 
 type Tournament struct {
-	ID         int64
 	ExternalID int64
 	Name       string
 	StartDate  time.Time

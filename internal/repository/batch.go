@@ -18,8 +18,8 @@ var (
 )
 
 const createManyLayouts = `-- name: CreateManyLayouts :batchexec
-insert into layouts (tournament_id, name, course_name, length, units, holes, par)
-values ($1, $2, $3, $4, $5, $6, $7)
+insert into layouts (id, tournament_id, name, course_name, length, units, holes, par)
+values ($1, $2, $3, $4, $5, $6, $7, $8)
 returning id, tournament_id, name, course_name, length, units, holes, par
 `
 
@@ -30,6 +30,7 @@ type CreateManyLayoutsBatchResults struct {
 }
 
 type CreateManyLayoutsParams struct {
+	ID           int64
 	TournamentID int64
 	Name         string
 	CourseName   string
@@ -43,6 +44,7 @@ func (q *Queries) CreateManyLayouts(ctx context.Context, arg []CreateManyLayouts
 	batch := &pgx.Batch{}
 	for _, a := range arg {
 		vals := []interface{}{
+			a.ID,
 			a.TournamentID,
 			a.Name,
 			a.CourseName,
@@ -79,17 +81,8 @@ func (b *CreateManyLayoutsBatchResults) Close() error {
 }
 
 const createManyPlayers = `-- name: CreateManyPlayers :batchexec
-insert into players (first_name, last_name, name, division, pdga_number, city, state_prov, country)
-values (
-    $1,
-    $2,
-    $3,
-    $4,
-    $5,
-    $6,
-    $7,
-    $8
-)
+insert into players (pdga_number, first_name, last_name, name, division, city, state_prov, country)
+values ($1, $2, $3, $4, $5, $6, $7, $8)
 on conflict (pdga_number) do nothing
 `
 
@@ -100,11 +93,11 @@ type CreateManyPlayersBatchResults struct {
 }
 
 type CreateManyPlayersParams struct {
+	PdgaNumber int64
 	FirstName  string
 	LastName   string
 	Name       string
 	Division   string
-	PdgaNumber int64
 	City       pgtype.Text
 	StateProv  pgtype.Text
 	Country    pgtype.Text
@@ -114,11 +107,11 @@ func (q *Queries) CreateManyPlayers(ctx context.Context, arg []CreateManyPlayers
 	batch := &pgx.Batch{}
 	for _, a := range arg {
 		vals := []interface{}{
+			a.PdgaNumber,
 			a.FirstName,
 			a.LastName,
 			a.Name,
 			a.Division,
-			a.PdgaNumber,
 			a.City,
 			a.StateProv,
 			a.Country,
@@ -146,6 +139,62 @@ func (b *CreateManyPlayersBatchResults) Exec(f func(int, error)) {
 }
 
 func (b *CreateManyPlayersBatchResults) Close() error {
+	b.closed = true
+	return b.br.Close()
+}
+
+const createRoundScores = `-- name: CreateRoundScores :batchexec
+insert into scores (player_id, tournament_id, layout_id, round_number, score)
+values ($1, $2, $3, $4, $5)
+`
+
+type CreateRoundScoresBatchResults struct {
+	br     pgx.BatchResults
+	tot    int
+	closed bool
+}
+
+type CreateRoundScoresParams struct {
+	PlayerID     int64
+	TournamentID int64
+	LayoutID     int64
+	RoundNumber  int32
+	Score        int32
+}
+
+func (q *Queries) CreateRoundScores(ctx context.Context, arg []CreateRoundScoresParams) *CreateRoundScoresBatchResults {
+	batch := &pgx.Batch{}
+	for _, a := range arg {
+		vals := []interface{}{
+			a.PlayerID,
+			a.TournamentID,
+			a.LayoutID,
+			a.RoundNumber,
+			a.Score,
+		}
+		batch.Queue(createRoundScores, vals...)
+	}
+	br := q.db.SendBatch(ctx, batch)
+	return &CreateRoundScoresBatchResults{br, len(arg), false}
+}
+
+func (b *CreateRoundScoresBatchResults) Exec(f func(int, error)) {
+	defer b.br.Close()
+	for t := 0; t < b.tot; t++ {
+		if b.closed {
+			if f != nil {
+				f(t, ErrBatchAlreadyClosed)
+			}
+			continue
+		}
+		_, err := b.br.Exec()
+		if f != nil {
+			f(t, err)
+		}
+	}
+}
+
+func (b *CreateRoundScoresBatchResults) Close() error {
 	b.closed = true
 	return b.br.Close()
 }
