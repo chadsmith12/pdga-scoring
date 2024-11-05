@@ -102,7 +102,7 @@ func (service *TournamentExtrator) insertRoundScores(ctx context.Context, tourna
 	results := service.store.CreateRoundScores(ctx, scores)
 	results.Exec(func(i int, err error) {
 		if err != nil {
-			service.logger.Warn("failed to insert score", slog.Int("index", i), slog.Any("err", err))
+			service.logger.Warn("failed to insert score", slog.Int64("tournament_id", tournamentId), slog.Int("index", i), slog.Any("err", err))
 		}
 	})
 }
@@ -156,7 +156,7 @@ func (service *TournamentExtrator) extractRounds(ctx context.Context, tourneyInf
 				seenLatest = true
 			}
 			service.limiter.limiter.Wait(ctx)
-
+			service.logger.Info("getting round", slog.Int64("roundNumber", roundInfo.Number), slog.String("division", division.Division))
 			roundResponse, err := service.extractRound(int(roundInfo.Number), id, pdga.Division(division.Division))
 			if err != nil {
 				service.logger.Warn("failed to get tournament round",

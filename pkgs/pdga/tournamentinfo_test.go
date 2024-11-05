@@ -1,7 +1,11 @@
 package pdga_test
 
 import (
+	"context"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/chadsmith12/pdga-scoring/pkgs/pdga"
@@ -17,7 +21,7 @@ func loadTestFile(t *testing.T, file string) []byte {
 }
 
 func TestUnmarshallTournamentInfo(t *testing.T) {
-	data := loadTestFile(t, "tournament_info_test.json")
+	data := loadTestFile(t, "test_files/tournament_info_test.json")
 
 	tournamentData, err := pdga.UnmarshalTournamentInfo(data)
 	if err != nil {
@@ -30,7 +34,7 @@ func TestUnmarshallTournamentInfo(t *testing.T) {
 }
 
 func TestCalculateNumberRounds(t *testing.T) {
-	data := loadTestFile(t, "tournament_info_round_test.json")
+	data := loadTestFile(t, "test_files/tournament_info_round_test.json")
 	
 	tournamentData, err := pdga.UnmarshalTournamentInfo(data)
 	if err != nil {
@@ -42,3 +46,34 @@ func TestCalculateNumberRounds(t *testing.T) {
 		t.Fatalf("expected NumberRounds to be 4; got %d", numberRounds)
 	}
 }
+
+func TestGetTournamentInfo(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(testTournamentServer(t)))
+	defer server.Close()
+
+	client := testTournamentClient(server.URL)
+	data, _ := client.FetchTournamentInfo(context.TODO(), 77774)
+	if data.Data.TournamentID != "77774" {
+		t.Errorf("expected 'TournamentId' to be 77774, got: %s", data.Data.TournamentID)
+	}
+}
+
+func testTournamentClient(baseUrl string) *pdga.Client {
+	return pdga.NewClient(pdga.WithBaseUrl(baseUrl))
+}
+
+func testTournamentServer(t *testing.T) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !strings.Contains(r.URL.Path, "live_results_fetch_event") {
+			t.Errorf("expected to request `tournament.json`, got: %s", r.URL.Path)
+		}
+		queryValues := r.URL.Query()
+		if queryValues.Get("TournID") == "" {
+			t.Error("expected query string 'TournID', got empty string")
+		}
+
+
+		w.WriteHeader(http.StatusOK)
+		w.Write(loadTestFile(t, "test_files/tournament_info_test.json"))
+	}
+} 

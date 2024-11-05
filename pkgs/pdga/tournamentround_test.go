@@ -18,7 +18,7 @@ func assertSlice[T comparable](t *testing.T, actual, expected []T) {
 }
 
 func TestUnmarshalTournamentRound(t *testing.T) {
-	data := loadTestFile(t, "tournament_round_test.json")
+	data := loadTestFile(t, "test_files/tournament_round_test.json")
 
 	roundData, err := pdga.UnmarshalTournamentRoundData(data)
 	if err != nil {
@@ -32,7 +32,7 @@ func TestUnmarshalTournamentRound(t *testing.T) {
 
 
 func TestUnmarshalPoolTournamentRound(t *testing.T) {
-	data := loadTestFile(t, "pool_test.json")
+	data := loadTestFile(t, "test_files/pool_test.json")
 
 	roundData, err := pdga.UnmarshalTournamentRoundData(data)
 	if err != nil {

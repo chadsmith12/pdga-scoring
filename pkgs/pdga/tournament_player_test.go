@@ -7,7 +7,7 @@ import (
 )
 
 func TestCanExtractPlayers(t *testing.T) {
-    data := loadTestFile(t, "pool_test.json")
+    data := loadTestFile(t, "test_files/pool_test.json")
     roundInfo, _ := pdga.UnmarshalTournamentRoundData(data)
     allRounds := []pdga.TournamentRoundResponse{ roundInfo }
     fullTournament := pdga.FullTournamentRound(allRounds)

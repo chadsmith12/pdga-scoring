@@ -89,11 +89,13 @@ func writeDivisionRound(basePath string, tournamentId, roundNumber int, division
 
 type Client struct {
     httpClient *http.Client
+    baseUrl string
 }
 
 func NewClient(options ...Option) *Client {
     client := &Client{
         httpClient: http.DefaultClient,
+        baseUrl: baseUrl,
     }
     
     for _, option := range options {
@@ -109,8 +111,14 @@ func WithClient(client *http.Client) Option {
     }
 }
 
+func WithBaseUrl(baseUrl string) Option {
+    return func(c *Client) {
+       c.baseUrl = baseUrl 
+    }
+}
+
 func (c *Client) FetchTournamentInfo(ctx context.Context, tournamentId int) (TournamentInfo, error) {
-    tournamentUrl := createTournamentUrl(tournamentId)
+    tournamentUrl := c.createTournamentUrl(tournamentId)
     req, err := http.NewRequestWithContext(ctx, "GET", tournamentUrl, nil)
     if err != nil {
         return TournamentInfo{}, err
@@ -134,7 +142,7 @@ func (c *Client) FetchTournamentInfo(ctx context.Context, tournamentId int) (Tou
 }
 
 func (c *Client) FetchTournamentRound(context context.Context, tournamentId, roundNumber int, division Division) (TournamentRoundResponse, error) {
-    roundUrl := createTournamentRoundUrl(tournamentId, roundNumber, division)
+    roundUrl := c.createTournamentRoundUrl(tournamentId, roundNumber, division)
     req, err := http.NewRequestWithContext(context, "GET", roundUrl, nil)
     if err != nil {
         return TournamentRoundResponse{}, err
@@ -161,10 +169,10 @@ func (c *Client) FetchTournamentRound(context context.Context, tournamentId, rou
     return tournamentRoundData, nil
 }
 
-func createTournamentRoundUrl(tournamentId, roundNumber int, division Division) string {
-    return fmt.Sprintf("%s/%s?TournID=%d&Division=%s&Round=%d", baseUrl, roundEndpoint, tournamentId, division, roundNumber)
+func (c *Client) createTournamentRoundUrl(tournamentId, roundNumber int, division Division) string {
+    return fmt.Sprintf("%s/%s?TournID=%d&Division=%s&Round=%d", c.baseUrl, roundEndpoint, tournamentId, division, roundNumber)
 }
 
-func createTournamentUrl(tournamentId int) string {
-    return fmt.Sprintf("%s/%s?TournID=%d", baseUrl, tournamentEndpoint, tournamentId)
+func (c *Client) createTournamentUrl(tournamentId int) string {
+    return fmt.Sprintf("%s/%s?TournID=%d", c.baseUrl, tournamentEndpoint, tournamentId)
 }
