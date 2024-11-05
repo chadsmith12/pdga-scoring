@@ -19,6 +19,10 @@ const (
     Fpo Division = "FPO"
 )
 
+func (d Division) String() string {
+    return string(d)
+}
+
 const ( 
     baseUrl = "https://www.pdga.com/apps/tournament/live-api"
     roundEndpoint = "live_results_fetch_round"

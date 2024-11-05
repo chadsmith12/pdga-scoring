@@ -39,7 +39,7 @@ type TournamentData struct {
 	MultiLineNameHTML     string                `json:"MultiLineNameHtml"`
 	RawTier               string                `json:"RawTier"`
 	Rounds                int64                 `json:"Rounds"`
-	RoundsList            map[string]RoundsList `json:"RoundsList"`
+	RoundsList            map[string]RoundsData `json:"RoundsList"`
 	Semis                 string                `json:"Semis"`
 	SimpleName            string                `json:"SimpleName"`
 	StartDate             string                `json:"StartDate"`
@@ -59,11 +59,11 @@ type TournamentData struct {
 }
 
 type AdditionalEventInfo struct {
-	RoundsList   map[string]RoundsList `json:"RoundsList"`
+	RoundsList   map[string]RoundsData `json:"RoundsList"`
 	BroadcastURL string                `json:"BroadcastUrl"`
 }
 
-type RoundsList struct {
+type RoundsData struct {
 	Number           int64  `json:"Number"`
 	Label            string `json:"Label"`
 	LabelAbbreviated string `json:"LabelAbbreviated"`
@@ -128,17 +128,25 @@ type MultiLineName struct {
 	Post string `json:"post"`
 }
 
-func (td TournamentData) NumberRounds() int {
-	numberRounds := len(td.RoundsList)
-	playoffRound := 0
-	for _, value := range td.RoundsList {
-		if value.Label == "Playoff" {
-			playoffRound = int(value.Number)
+func (td TournamentData) NumberRounds(division Division) int {
+	for _, currentDivision := range td.Divisions {
+		if currentDivision.Division != string(division) {
+			continue	
 		}
+		
+		return td.numberRounds(currentDivision)
 	}
 
-	if td.HighestCompletedRound != int64(playoffRound) {
-		numberRounds--
+	return 0
+}
+
+func (td TournamentData) numberRounds(division TournamentDivision) int {
+	numberRounds := 0
+	for round := range td.RoundsList {
+		numberRounds++
+		if round == division.LatestRound {
+			break
+		}
 	}
 
 	return numberRounds

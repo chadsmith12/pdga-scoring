@@ -41,10 +41,20 @@ func TestCalculateNumberRounds(t *testing.T) {
 		t.Fatalf("failed to unmarshall tournament data: %v", err)
 	}
 
-	numberRounds := tournamentData.Data.NumberRounds()
-	if numberRounds != 4 {
-		t.Fatalf("expected NumberRounds to be 4; got %d", numberRounds)
-	}
+	t.Run("should calculate number rounds", func(t *testing.T) {
+		numberRounds := tournamentData.Data.NumberRounds(pdga.Fpo)
+		if numberRounds != 4 {
+			t.Fatalf("expected NumberRounds to be 4; got %d", numberRounds)
+		}
+	})
+
+	t.Run("should get 0 for division not played", func(t *testing.T) {
+		numberRounds := tournamentData.Data.NumberRounds(pdga.Mpo)
+		if numberRounds != 0 {
+			t.Fatalf("expected NumberRounds to be 0; got %d", numberRounds)
+		}
+	})
+
 }
 
 func TestGetTournamentInfo(t *testing.T) {
