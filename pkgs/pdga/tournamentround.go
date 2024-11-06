@@ -167,18 +167,27 @@ type Score struct {
 	HoleScores          []string   `json:"HoleScores"`
 }
 
-func (round TournamentRoundResponse) Top10() []Score {
-	scores := make([]Score, 0, 10)
+type HoleResult struct {
+	HoleSore int
+	HolePar int
+	RelativeToPar int
+	HoleNumber int
+}
 
-	// for _, score := range round.Data.Scores {
-	// 	if score.RunningPlace <= 10 {
-	// 		scores = append(scores, score)
-	// 	} else {
-	// 		break
-	// 	}
-	// }
+func (score Score) HoleResults(holes []Hole) []HoleResult {
+	holeResults := make([]HoleResult, len(score.HoleScores))
 
-	return scores
+	for i, holeScore := range score.HoleScoring() {
+		holePar := holes[i]
+		holeResults[i] = HoleResult{
+			HoleSore:      holeScore,
+			HolePar:       int(holePar.Par),
+			RelativeToPar: holeScore - int(holePar.Par),
+			HoleNumber: int(holePar.HoleOrdinal) ,
+		}
+	}
+
+	return holeResults
 }
 
 func (score Score) HoleScoring() []int {

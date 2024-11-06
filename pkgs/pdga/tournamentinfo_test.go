@@ -35,26 +35,29 @@ func TestUnmarshallTournamentInfo(t *testing.T) {
 
 func TestCalculateNumberRounds(t *testing.T) {
 	data := loadTestFile(t, "test_files/tournament_info_round_test.json")
-	
+	ddo := loadTestFile(t, "test_files/ddo_tournament.json")	
 	tournamentData, err := pdga.UnmarshalTournamentInfo(data)
 	if err != nil {
 		t.Fatalf("failed to unmarshall tournament data: %v", err)
 	}
 
-	t.Run("should calculate number rounds", func(t *testing.T) {
-		numberRounds := tournamentData.Data.NumberRounds(pdga.Fpo)
+	ddoData, err := pdga.UnmarshalTournamentInfo(ddo)
+	if err != nil {
+		t.Fatalf("failed to unmarshall tournament data: %v", err)
+	}
+
+	t.Run("should calculate number rounds with finals", func(t *testing.T) {
+		numberRounds := tournamentData.Data.NumberRounds()
 		if numberRounds != 4 {
 			t.Fatalf("expected NumberRounds to be 4; got %d", numberRounds)
 		}
 	})
-
-	t.Run("should get 0 for division not played", func(t *testing.T) {
-		numberRounds := tournamentData.Data.NumberRounds(pdga.Mpo)
-		if numberRounds != 0 {
-			t.Fatalf("expected NumberRounds to be 0; got %d", numberRounds)
+	t.Run("should calculate number rounds without finals", func(t *testing.T) {
+		numberRounds := ddoData.Data.NumberRounds()
+		if numberRounds != 3 {
+			t.Fatalf("expected NumberRounds to be 3; got %d", numberRounds)
 		}
 	})
-
 }
 
 func TestGetTournamentInfo(t *testing.T) {

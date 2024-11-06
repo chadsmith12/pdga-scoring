@@ -17,6 +17,66 @@ var (
 	ErrBatchAlreadyClosed = errors.New("batch already closed")
 )
 
+const createHoleScores = `-- name: CreateHoleScores :batchexec
+insert into hole_scores (player_id, tournament_id, layout_id, round_number, hole_number, par, score_relative_to_par)
+values ($1, $2, $3, $4, $5, $6, $7)
+`
+
+type CreateHoleScoresBatchResults struct {
+	br     pgx.BatchResults
+	tot    int
+	closed bool
+}
+
+type CreateHoleScoresParams struct {
+	PlayerID           int64
+	TournamentID       int64
+	LayoutID           int64
+	RoundNumber        int32
+	HoleNumber         int32
+	Par                int32
+	ScoreRelativeToPar int32
+}
+
+func (q *Queries) CreateHoleScores(ctx context.Context, arg []CreateHoleScoresParams) *CreateHoleScoresBatchResults {
+	batch := &pgx.Batch{}
+	for _, a := range arg {
+		vals := []interface{}{
+			a.PlayerID,
+			a.TournamentID,
+			a.LayoutID,
+			a.RoundNumber,
+			a.HoleNumber,
+			a.Par,
+			a.ScoreRelativeToPar,
+		}
+		batch.Queue(createHoleScores, vals...)
+	}
+	br := q.db.SendBatch(ctx, batch)
+	return &CreateHoleScoresBatchResults{br, len(arg), false}
+}
+
+func (b *CreateHoleScoresBatchResults) Exec(f func(int, error)) {
+	defer b.br.Close()
+	for t := 0; t < b.tot; t++ {
+		if b.closed {
+			if f != nil {
+				f(t, ErrBatchAlreadyClosed)
+			}
+			continue
+		}
+		_, err := b.br.Exec()
+		if f != nil {
+			f(t, err)
+		}
+	}
+}
+
+func (b *CreateHoleScoresBatchResults) Close() error {
+	b.closed = true
+	return b.br.Close()
+}
+
 const createManyLayouts = `-- name: CreateManyLayouts :batchexec
 insert into layouts (id, tournament_id, name, course_name, length, units, holes, par)
 values ($1, $2, $3, $4, $5, $6, $7, $8)

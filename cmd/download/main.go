@@ -13,7 +13,6 @@ import (
 )
 
 var tournamentIds = []int {77772, 82419, 77773, 84345, 77098, 77774, 78651, 77775, 77758, 77759, 77091, 77760, 77761, 77762, 77099, 79049, 77763, 78193, 77764, 77765, 78647, 77766, 78666, 78194, 78271, 78654, 78195, 77768, 78196, 77750, 78197, 78655, 77769, 77771, 78646, 71315}
-var event = []int {78197}
 
 func main() {
     godotenv.Load()
@@ -24,7 +23,7 @@ func main() {
     
     repo := repository.New(db)
     client := pdga.NewClient()
-    service := extractor.NewTournamentExtractor(repo, client, slog.Default(), 3, 6)
+    service := extractor.NewTournamentExtractor(repo, client, slog.Default(), 3, 5)
 
-    service.Extract(context.Background(), event)
+    service.Extract(context.Background(), tournamentIds)
 }

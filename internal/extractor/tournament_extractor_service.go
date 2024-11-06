@@ -3,6 +3,7 @@ package extractor
 import (
 	"context"
 	"log/slog"
+	"slices"
 	"sync"
 	"time"
 
@@ -24,6 +25,7 @@ type TournamentExtrator struct {
 	tournamentWg sync.WaitGroup
 	limiter *rateLimiter
 	workers int
+	validDivisions []string
 }
 
 func NewTournamentExtractor(store *repository.Queries, client *pdga.Client, logger *slog.Logger, requestLimit float64, workers int) *TournamentExtrator {
@@ -35,6 +37,7 @@ func NewTournamentExtractor(store *repository.Queries, client *pdga.Client, logg
 		tournamentWg: sync.WaitGroup{},
 		limiter: &rateLimiter{limiter: limiter},
 		workers: workers,
+		validDivisions: []string { pdga.Fpo.String(), pdga.Mpo.String() },
 	}
 }
 
@@ -59,8 +62,8 @@ func (service *TournamentExtrator) tournamentWorker(ctx context.Context, tournam
 	for tournamentId := range tournamentCh {
 		service.processTournament(ctx, tournamentId)		
 	}
-
-	slog.Info("finishing tournament worker")
+	
+	service.logger.Info("finished tournament worker")
 }
 
 func (service *TournamentExtrator) processTournament(ctx context.Context, id int) {
@@ -80,6 +83,39 @@ func (service *TournamentExtrator) processTournament(ctx context.Context, id int
 	service.processLayouts(ctx, dbTourney.ExternalID, tourneyInfo)
 	service.insertPlayers(ctx, tournamentRounds.Players())
 	service.insertRoundScores(ctx, dbTourney.ExternalID, tournamentRounds)
+	service.insertHoleScores(ctx, dbTourney.ExternalID, tournamentRounds)
+}
+
+func (service *TournamentExtrator) insertHoleScores(ctx context.Context, tournamentId int64, fullRound pdga.FullTournamentRound) {
+	holeScores := make([]repository.CreateHoleScoresParams, 0, 2 * 18 * 10)
+	for _, poolRound := range fullRound {
+		for _, round := range poolRound.Data.RoundData {
+			for _, score := range round.Scores {
+				playerScores := score.HoleResults(round.Holes)
+				for _, holeResult := range playerScores {
+					holeScore := repository.CreateHoleScoresParams{
+						PlayerID:           score.PDGANum,
+						TournamentID:       tournamentId,
+						LayoutID:           score.LayoutID,
+						RoundNumber:        int32(score.Round),
+						HoleNumber:         int32(holeResult.HoleNumber),
+						Par:                int32(holeResult.HolePar),
+						ScoreRelativeToPar: int32(holeResult.RelativeToPar),
+					}
+					holeScores = append(holeScores, holeScore)
+				}
+			}
+		}
+	}
+
+	results := service.store.CreateHoleScores(ctx, holeScores)
+	results.Exec(func(i int, err error) {
+		if err != nil {
+			service.logger.Warn("failed to insert hole score", 
+				slog.Int("tournamentId", int(tournamentId)),
+				slog.Any("err", err))
+		}
+	})
 }
 
 func (service *TournamentExtrator) insertRoundScores(ctx context.Context, tournamentId int64, fullRound pdga.FullTournamentRound) {
@@ -112,9 +148,9 @@ func (service *TournamentExtrator) processLayouts(ctx context.Context, externalI
 	dbLayouts := make([]repository.CreateManyLayoutsParams, 0, len(layouts))
 
 	for _, layout := range layouts {
-		if layout.CourseID == -1 {
-			continue
-		}
+		// if layout.CourseID == -1 {
+		// 	continue
+		// }
 		dbLayout := repository.CreateManyLayoutsParams{
 			ID:           layout.LayoutID,
 			TournamentID: externalId,
@@ -144,24 +180,19 @@ func (service *TournamentExtrator) extractRounds(ctx context.Context, tourneyInf
 		return []pdga.TournamentRoundResponse{}
 	}
 
-	numberRounds := 2 * len(tourneyInfo.Data.RoundsList)
+	numberRounds := 2 * tourneyInfo.Data.NumberRounds()
 	roundResponses := make([]pdga.TournamentRoundResponse, 0, numberRounds)
 	for _, division := range tourneyInfo.Data.Divisions {
-		seenLatest := false
-		for round, roundInfo := range tourneyInfo.Data.RoundsList {
-			if seenLatest {
-				break
-			}
-			if round == division.LatestRound {
-				seenLatest = true
-			}
+		if !slices.Contains(service.validDivisions, division.Division) {
+			continue
+		}
+		for roundNumber := 1; roundNumber <= tourneyInfo.Data.NumberRounds(); roundNumber++ {
 			service.limiter.limiter.Wait(ctx)
-			service.logger.Info("getting round", slog.Int64("roundNumber", roundInfo.Number), slog.String("division", division.Division))
-			roundResponse, err := service.extractRound(int(roundInfo.Number), id, pdga.Division(division.Division))
+			roundResponse, err := service.extractRound(roundNumber, id, pdga.Division(division.Division))
 			if err != nil {
 				service.logger.Warn("failed to get tournament round",
 					slog.Int("id", id),
-					slog.Int("roundNumber", int(roundInfo.Number)),
+					slog.Int("roundNumber", roundNumber),
 					slog.Any("err", err))
 				continue
 			}
