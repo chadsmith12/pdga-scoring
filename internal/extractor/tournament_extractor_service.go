@@ -186,13 +186,13 @@ func (service *TournamentExtrator) extractRounds(ctx context.Context, tourneyInf
 		if !slices.Contains(service.validDivisions, division.Division) {
 			continue
 		}
-		for roundNumber := 1; roundNumber <= tourneyInfo.Data.NumberRounds(); roundNumber++ {
+		for _, roundData := range tourneyInfo.Data.RoundsList {
 			service.limiter.limiter.Wait(ctx)
-			roundResponse, err := service.extractRound(roundNumber, id, pdga.Division(division.Division))
+			roundResponse, err := service.extractRound(int(roundData.Number), id, pdga.Division(division.Division))
 			if err != nil {
 				service.logger.Warn("failed to get tournament round",
 					slog.Int("id", id),
-					slog.Int("roundNumber", roundNumber),
+					slog.Int("roundNumber", int(roundData.Number)),
 					slog.Any("err", err))
 				continue
 			}
