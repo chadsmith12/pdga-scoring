@@ -4,3 +4,49 @@
 // source: scores.sql
 
 package repository
+
+import (
+	"context"
+)
+
+const getPlayersHoleScores = `-- name: GetPlayersHoleScores :many
+select id, player_id, tournament_id, layout_id, round_number, hole_number, par, score_relative_to_par from hole_scores hs
+where tournament_id = $1
+and player_id = any($2::int8[])
+and (score_relative_to_par < 0 or score_relative_to_par > 0)
+order by round_number, hole_number
+`
+
+type GetPlayersHoleScoresParams struct {
+	TournamentID int64
+	PlayerIds    []int64
+}
+
+func (q *Queries) GetPlayersHoleScores(ctx context.Context, arg GetPlayersHoleScoresParams) ([]HoleScore, error) {
+	rows, err := q.db.Query(ctx, getPlayersHoleScores, arg.TournamentID, arg.PlayerIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []HoleScore
+	for rows.Next() {
+		var i HoleScore
+		if err := rows.Scan(
+			&i.ID,
+			&i.PlayerID,
+			&i.TournamentID,
+			&i.LayoutID,
+			&i.RoundNumber,
+			&i.HoleNumber,
+			&i.Par,
+			&i.ScoreRelativeToPar,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
