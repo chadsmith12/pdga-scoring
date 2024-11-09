@@ -50,12 +50,13 @@ func (team CurrentTeam) ScoreTeam(config ScoringConfig, results Results) float64
     total += config.Podiums * float64(team.NumberPodiums(results))
     total += config.Top10s * float64(team.NumberTop10s(results))
     total += config.HotRound * float64(team.NumberHotRounds(results))
-    total += team.CalculateTeamBirdies(config.RoundBirdies, results)    
+    total += team.CalculateTeamBirdies(config.RoundBirdies, results)
+    total += team.CalculateTeamBirdiesBetter(config.EaglesOrBetter, results)
+    total += team.CalculateTeamBogeys(config.Bogeys, results)
+    total += team.CalculateTeamBogeyWorse(config.DoubleOrWorse, results)
 
     return total;
 }
-
-
 
 func (team CurrentTeam) HasWinner(results Results) bool {
     return slices.Contains(team.Players, results.Winner)
@@ -99,6 +100,18 @@ func (team CurrentTeam) NumberHotRounds(results Results) int {
 
 func (team CurrentTeam) CalculateTeamBirdies(config TimesConfig, results Results) float64 {
     return team.calculateRoundScore(config, results.RoundBirdies)
+}
+
+func (team CurrentTeam) CalculateTeamBirdiesBetter(config TimesConfig, results Results) float64 {
+    return team.calculateRoundScore(config, results.RoundEaglesBetter)
+}
+
+func (team CurrentTeam) CalculateTeamBogeys(config TimesConfig, results Results) float64 {
+    return team.calculateRoundScore(config, results.RoundBogeys)
+}
+
+func (team CurrentTeam) CalculateTeamBogeyWorse(config TimesConfig, results Results) float64 {
+    return team.calculateRoundScore(config, results.RoundDoubleWorse)
 }
 
 func (team CurrentTeam) calculateRoundScore(config TimesConfig, roundScores []map[int64]int) float64 {
