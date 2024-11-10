@@ -1,6 +1,8 @@
 package scoring
 
 import (
+	"encoding/json"
+	"io"
 	"slices"
 )
 
@@ -40,6 +42,25 @@ type FantasyTeam struct {
 
 type CurrentTeam struct {
     Players []int64
+}
+
+func UnmarshalConfig(data []byte) (ScoringConfig, error) {
+    var config ScoringConfig
+    err := json.Unmarshal(data, &config)
+    return config, err
+}
+
+func (c *ScoringConfig) MarshalConfig() ([]byte, error) {
+    return json.Marshal(c)
+}
+
+func ParseConfig(reader io.Reader) (ScoringConfig, error) {
+    data, err := io.ReadAll(reader)
+    if err != nil {
+        return ScoringConfig{}, err
+    }
+
+    return UnmarshalConfig(data)
 }
 
 func (team CurrentTeam) ScoreTeam(config ScoringConfig, results Results) float64 {
