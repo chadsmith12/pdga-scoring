@@ -9,6 +9,54 @@ import (
 	"context"
 )
 
+const getHotRoundsForTournament = `-- name: GetHotRoundsForTournament :many
+WITH BestScoresPerDivisionRound AS (
+    SELECT p.division, s.round_number, MIN(s.score) AS best_score
+    FROM scores s
+    join players p on s.player_id  = p.pdga_number 
+    WHERE s.tournament_id = $1 
+    GROUP BY p.division, s.round_number 
+)
+select p.division, s.player_id, s.score, s.round_number 
+from BestScoresPerDivisionRound bsd
+join scores s on bsd.best_score = s.score and bsd.round_number = s.round_number 
+join players p on s.player_id = p.pdga_number 
+where s.tournament_id = $1 and p.division = bsd.division
+order by s.round_number
+`
+
+type GetHotRoundsForTournamentRow struct {
+	Division    string
+	PlayerID    int64
+	Score       int32
+	RoundNumber int32
+}
+
+func (q *Queries) GetHotRoundsForTournament(ctx context.Context, tournamentID int64) ([]GetHotRoundsForTournamentRow, error) {
+	rows, err := q.db.Query(ctx, getHotRoundsForTournament, tournamentID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetHotRoundsForTournamentRow
+	for rows.Next() {
+		var i GetHotRoundsForTournamentRow
+		if err := rows.Scan(
+			&i.Division,
+			&i.PlayerID,
+			&i.Score,
+			&i.RoundNumber,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPlayersHoleScores = `-- name: GetPlayersHoleScores :many
 select id, player_id, tournament_id, layout_id, round_number, hole_number, par, score_relative_to_par from hole_scores hs
 where tournament_id = $1
@@ -40,6 +88,56 @@ func (q *Queries) GetPlayersHoleScores(ctx context.Context, arg GetPlayersHoleSc
 			&i.HoleNumber,
 			&i.Par,
 			&i.ScoreRelativeToPar,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getTop10ByTournament = `-- name: GetTop10ByTournament :many
+WITH TotalScores AS (
+    SELECT s.player_id, p.division, SUM(s.score) AS total_score
+    FROM scores s
+    JOIN players p ON s.player_id = p.pdga_number
+    WHERE s.tournament_id = $1
+    GROUP BY s.player_id, p.division
+),
+RankedScores AS (
+    SELECT player_id, division, total_score, RANK() OVER (PARTITION BY division ORDER BY total_score ASC) AS rank
+    FROM TotalScores
+)
+SELECT rs.rank, rs.player_id, rs.division, rs.total_score
+FROM RankedScores rs
+where rs.rank <= 10
+ORDER BY rs.division, rs.rank
+`
+
+type GetTop10ByTournamentRow struct {
+	Rank       int64
+	PlayerID   int64
+	Division   string
+	TotalScore int64
+}
+
+func (q *Queries) GetTop10ByTournament(ctx context.Context, tournamentID int64) ([]GetTop10ByTournamentRow, error) {
+	rows, err := q.db.Query(ctx, getTop10ByTournament, tournamentID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetTop10ByTournamentRow
+	for rows.Next() {
+		var i GetTop10ByTournamentRow
+		if err := rows.Scan(
+			&i.Rank,
+			&i.PlayerID,
+			&i.Division,
+			&i.TotalScore,
 		); err != nil {
 			return nil, err
 		}

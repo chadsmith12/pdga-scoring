@@ -9,3 +9,15 @@ func MapSlice[TSource any, TDest any](sourceData []TSource, selector func(TSourc
 
     return mapped
 }
+
+func FilterSlice[TSource any](sourceData []TSource, predicate func(TSource) bool) []TSource {
+    filtered := make([]TSource, 0, len(sourceData))
+
+    for _, item := range sourceData {
+        if predicate(item) {
+            filtered = append(filtered, item)
+        }
+    }
+
+    return filtered
+}

@@ -1,4 +1,4 @@
-package scoring
+package fantasy
 
 import (
 	"encoding/json"
@@ -6,42 +6,20 @@ import (
 	"slices"
 )
 
-type PositionMap map[int]int64
-
 type ScoringConfig struct {
-    EventWinner float64
-    Podiums float64
-    Top10s float64
-    HotRound float64
-    RoundBirdies TimesConfig
-    EaglesOrBetter TimesConfig
-    Bogeys TimesConfig
-    DoubleOrWorse TimesConfig
+    EventWinner float64 `json:"EventWinner"`
+    Podiums float64 `json:"Podiums"`
+    Top10s float64 `json:"Top10s"`
+    HotRound float64 `json:"HotRound"`
+    RoundBirdies TimesConfig `json:"RoundBirdies"`
+    EaglesOrBetter TimesConfig `json:"EaglesOrBetter"`
+    Bogeys TimesConfig `json:"Bogeys"`
+    DoubleOrWorse TimesConfig `json:"DoubleOrWorse"`
 }
 
 type TimesConfig struct {
-    Length int
-    Score float64
-}
-
-type Results struct {
-    Winner int64
-    Podiums []int64
-    Top10s []int64
-    HotRounds map[int][]int64
-    RoundBirdies []map[int64]int
-    RoundEaglesBetter []map[int64]int
-    RoundBogeys []map[int64]int
-    RoundDoubleWorse []map[int64]int
-}
-
-type FantasyTeam struct {
-    Players []int64
-    Bench []int64
-}
-
-type CurrentTeam struct {
-    Players []int64
+    Length int `json:"Length"`
+    Score float64 `json:"Score"`
 }
 
 func UnmarshalConfig(data []byte) (ScoringConfig, error) {
@@ -80,7 +58,12 @@ func (team CurrentTeam) ScoreTeam(config ScoringConfig, results Results) float64
 }
 
 func (team CurrentTeam) HasWinner(results Results) bool {
-    return slices.Contains(team.Players, results.Winner)
+    hasMpoWinner := slices.Contains(team.Players, results.MpoWinner)
+    if hasMpoWinner {
+        return true
+    }
+
+    return slices.Contains(team.Players, results.FpoWinner)
 }
 
 func (team CurrentTeam) NumberPodiums(results Results) int {

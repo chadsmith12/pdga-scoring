@@ -42,3 +42,34 @@ func (q *Queries) GetPlayers(ctx context.Context) ([]Player, error) {
 	}
 	return items, nil
 }
+
+const getPlayersInTournament = `-- name: GetPlayersInTournament :many
+SELECT player_id, p.division FROM scores
+join players p on scores.player_id = p.pdga_number
+where scores.tournament_id = $1 and scores.round_number = 1
+`
+
+type GetPlayersInTournamentRow struct {
+	PlayerID int64
+	Division string
+}
+
+func (q *Queries) GetPlayersInTournament(ctx context.Context, tournamentID int64) ([]GetPlayersInTournamentRow, error) {
+	rows, err := q.db.Query(ctx, getPlayersInTournament, tournamentID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPlayersInTournamentRow
+	for rows.Next() {
+		var i GetPlayersInTournamentRow
+		if err := rows.Scan(&i.PlayerID, &i.Division); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

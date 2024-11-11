@@ -1,72 +1,72 @@
-package scoring_test
+package fantasy_test
 
 import (
 	"testing"
 
-	"github.com/chadsmith12/pdga-scoring/internal/scoring"
+	"github.com/chadsmith12/pdga-scoring/internal/fantasy"
 )
 
 type testRun struct {
     name    string
-    config  scoring.ScoringConfig
-    results scoring.Results
+    config  fantasy.ScoringConfig
+    results fantasy.Results
     expected float64
 }
 
 
-var testConfig = scoring.ScoringConfig {
+var testConfig = fantasy.ScoringConfig {
     EventWinner: 5,
     Podiums: 3,
     Top10s: 1,
     HotRound: 0.5,
-    RoundBirdies: scoring.TimesConfig{Length: 3, Score: 0.25},
-    EaglesOrBetter: scoring.TimesConfig{Length: 1, Score: 0.25},
-    Bogeys: scoring.TimesConfig{Length: 3, Score: -0.25},
-    DoubleOrWorse: scoring.TimesConfig{Length: 1, Score: -0.25},
+    RoundBirdies: fantasy.TimesConfig{Length: 3, Score: 0.25},
+    EaglesOrBetter: fantasy.TimesConfig{Length: 1, Score: 0.25},
+    Bogeys: fantasy.TimesConfig{Length: 3, Score: -0.25},
+    DoubleOrWorse: fantasy.TimesConfig{Length: 1, Score: -0.25},
 }
 
 func TestCalculateTeamEaglesBetter(t *testing.T) {
     testRuns := []testRun{
         {
             name:   "Calculates even eagles length",
-            config: scoring.ScoringConfig{EaglesOrBetter: scoring.TimesConfig{Length: 1, Score: 0.25}},
-            results: scoring.Results{RoundEaglesBetter: []map[int64]int{
+            config: fantasy.ScoringConfig{EaglesOrBetter: fantasy.TimesConfig{Length: 1, Score: 0.25}},
+            results: fantasy.Results{RoundEaglesBetter: []map[int64]int{
                     {1: 1},
             }},
             expected: 0.25,
         },
         {
             name:   "Calculates double eagles length",
-            config: scoring.ScoringConfig{EaglesOrBetter: scoring.TimesConfig{Length: 1, Score: 0.25}},
-            results: scoring.Results{RoundEaglesBetter: []map[int64]int{
+            config: fantasy.ScoringConfig{EaglesOrBetter: fantasy.TimesConfig{Length: 1, Score: 0.25}},
+            results: fantasy.Results{RoundEaglesBetter: []map[int64]int{
                     {1: 2},
             }},
             expected: 0.50,
         },
         {
             name:   "Calculates triple eagles length",
-            config: scoring.ScoringConfig{EaglesOrBetter: scoring.TimesConfig{Length: 1, Score: 0.25}},
-            results: scoring.Results{RoundEaglesBetter: []map[int64]int{
+            config: fantasy.ScoringConfig{EaglesOrBetter: fantasy.TimesConfig{Length: 1, Score: 0.25}},
+            results: fantasy.Results{RoundEaglesBetter: []map[int64]int{
                     {1: 3},
             }},
             expected: 0.75,
         },
         {
             name:   "Calculates no eagles length",
-            config: scoring.ScoringConfig{EaglesOrBetter: scoring.TimesConfig{Length: 1, Score: 0.25}},
-            results: scoring.Results{RoundEaglesBetter: []map[int64]int{}},
+            config: fantasy.ScoringConfig{EaglesOrBetter: fantasy.TimesConfig{Length: 1, Score: 0.25}},
+            results: fantasy.Results{RoundEaglesBetter: []map[int64]int{}},
             expected: 0.0,
         },
         {
             name:   "Won't calculate with no player",
-            config: scoring.ScoringConfig{EaglesOrBetter: scoring.TimesConfig{Length: 3, Score: 0.25}},
-            results: scoring.Results{RoundEaglesBetter: []map[int64]int{
+            config: fantasy.ScoringConfig{EaglesOrBetter: fantasy.TimesConfig{Length: 3, Score: 0.25}},
+            results: fantasy.Results{RoundEaglesBetter: []map[int64]int{
                     {2: 2},
             }},
             expected: 0.0,
         },
     }
-    team := scoring.CurrentTeam {
+    team := fantasy.CurrentTeam {
         Players: []int64{1},
     }
 
@@ -84,60 +84,60 @@ func TestCalculateTeamBirdies(t *testing.T) {
     testRuns := []testRun{
         {
             name:   "Calculates even birdies length",
-            config: scoring.ScoringConfig{RoundBirdies: scoring.TimesConfig{Length: 3, Score: 0.25}},
-            results: scoring.Results{RoundBirdies: []map[int64]int{
+            config: fantasy.ScoringConfig{RoundBirdies: fantasy.TimesConfig{Length: 3, Score: 0.25}},
+            results: fantasy.Results{RoundBirdies: []map[int64]int{
                     {1: 3},
             }},
             expected: 0.25,
         },
         {
             name:   "Calculates ueven birdies length",
-            config: scoring.ScoringConfig{RoundBirdies: scoring.TimesConfig{Length: 3, Score: 0.25}},
-            results: scoring.Results{RoundBirdies: []map[int64]int{
+            config: fantasy.ScoringConfig{RoundBirdies: fantasy.TimesConfig{Length: 3, Score: 0.25}},
+            results: fantasy.Results{RoundBirdies: []map[int64]int{
                     {1: 4},
             }},
             expected: 0.25,
         },
         {
             name:   "Calculates double birdies length",
-            config: scoring.ScoringConfig{RoundBirdies: scoring.TimesConfig{Length: 3, Score: 0.25}},
-            results: scoring.Results{RoundBirdies: []map[int64]int{
+            config: fantasy.ScoringConfig{RoundBirdies: fantasy.TimesConfig{Length: 3, Score: 0.25}},
+            results: fantasy.Results{RoundBirdies: []map[int64]int{
                     {1: 6},
             }},
             expected: 0.50,
         },
         {
             name:   "Calculates triple birdies length",
-            config: scoring.ScoringConfig{RoundBirdies: scoring.TimesConfig{Length: 3, Score: 0.25}},
-            results: scoring.Results{RoundBirdies: []map[int64]int{
+            config: fantasy.ScoringConfig{RoundBirdies: fantasy.TimesConfig{Length: 3, Score: 0.25}},
+            results: fantasy.Results{RoundBirdies: []map[int64]int{
                     {1: 9},
             }},
             expected: 0.75,
         },
         {
             name:   "Calculates no birdies length",
-            config: scoring.ScoringConfig{RoundBirdies: scoring.TimesConfig{Length: 3, Score: 0.25}},
-            results: scoring.Results{RoundBirdies: []map[int64]int{}},
+            config: fantasy.ScoringConfig{RoundBirdies: fantasy.TimesConfig{Length: 3, Score: 0.25}},
+            results: fantasy.Results{RoundBirdies: []map[int64]int{}},
             expected: 0.0,
         },
         {
             name:   "Calculates less than value birdies length",
-            config: scoring.ScoringConfig{RoundBirdies: scoring.TimesConfig{Length: 3, Score: 0.25}},
-            results: scoring.Results{RoundBirdies: []map[int64]int{
+            config: fantasy.ScoringConfig{RoundBirdies: fantasy.TimesConfig{Length: 3, Score: 0.25}},
+            results: fantasy.Results{RoundBirdies: []map[int64]int{
                     {1: 2},
             }},
             expected: 0.0,
         },
         {
             name:   "Won't calculate with no player",
-            config: scoring.ScoringConfig{RoundBirdies: scoring.TimesConfig{Length: 3, Score: 0.25}},
-            results: scoring.Results{RoundBirdies: []map[int64]int{
+            config: fantasy.ScoringConfig{RoundBirdies: fantasy.TimesConfig{Length: 3, Score: 0.25}},
+            results: fantasy.Results{RoundBirdies: []map[int64]int{
                     {2: 2},
             }},
             expected: 0.0,
         },
     }
-    team := scoring.CurrentTeam {
+    team := fantasy.CurrentTeam {
         Players: []int64{1},
     }
     
@@ -156,7 +156,7 @@ func TestCalculateRoundScore(t *testing.T) {
         {
             name:   "Calculates single player round",
             config: testConfig,
-            results: scoring.Results{
+            results: fantasy.Results{
                 RoundEaglesBetter: []map[int64]int{},
                 RoundBirdies: []map[int64]int{{1: 10}},
                 RoundBogeys: []map[int64]int{{1: 2}},
@@ -168,7 +168,7 @@ func TestCalculateRoundScore(t *testing.T) {
         {
             name:   "Calculates multiple player round",
             config: testConfig,
-            results: scoring.Results{
+            results: fantasy.Results{
                 RoundEaglesBetter: []map[int64]int{{2: 1}},
                 RoundBirdies: []map[int64]int{{1: 10, 2: 9}},
                 RoundBogeys: []map[int64]int{{1: 2}, {2: 2}},
@@ -178,7 +178,7 @@ func TestCalculateRoundScore(t *testing.T) {
             expected: 1.75,
         },
     }
-    team := scoring.CurrentTeam {
+    team := fantasy.CurrentTeam {
         Players: []int64{1,2},
     }
 
@@ -197,21 +197,21 @@ func TestCalculateWinner(t *testing.T) {
         {
             name:   "Calculates winner",
             config: testConfig,
-            results: scoring.Results{
-                Winner: 3,
+            results: fantasy.Results{
+                MpoWinner: 3,
             },
             expected: 5,
         },
         {
             name:   "Calculates no winner",
             config: testConfig,
-            results: scoring.Results{
-                Winner: 4,
+            results: fantasy.Results{
+                MpoWinner: 4,
             },
             expected: 0,
         },
     }
-    team := scoring.CurrentTeam {
+    team := fantasy.CurrentTeam {
         Players: []int64{3},
     }
 
@@ -230,8 +230,8 @@ func TestEventScores(t *testing.T) {
         {
             name:   "Calculates podiums",
             config: testConfig,
-            results: scoring.Results{
-                Winner: 45,
+            results: fantasy.Results{
+                MpoWinner: 45,
                 Podiums: []int64{1, 2},
             },
             expected: 6,
@@ -239,8 +239,17 @@ func TestEventScores(t *testing.T) {
         {
             name:   "Calculates winner and podiums",
             config: testConfig,
-            results: scoring.Results{
-                Winner: 3,
+            results: fantasy.Results{
+                MpoWinner: 3,
+                Podiums: []int64{1, 2},
+            },
+            expected: 11,
+        },
+        {
+            name:   "Calculates winner and podiums",
+            config: testConfig,
+            results: fantasy.Results{
+                FpoWinner: 3,
                 Podiums: []int64{1, 2},
             },
             expected: 11,
@@ -248,8 +257,8 @@ func TestEventScores(t *testing.T) {
         {
             name:   "Calculates winner, podiums, 1 top 10",
             config: testConfig,
-            results: scoring.Results{
-                Winner: 3,
+            results: fantasy.Results{
+                MpoWinner: 3,
                 Podiums: []int64{1, 2},
                 Top10s: []int64{4,5},
             },
@@ -258,8 +267,8 @@ func TestEventScores(t *testing.T) {
         {
             name:   "Calculates winner, podiums, 1 top 10, hot round",
             config: testConfig,
-            results: scoring.Results{
-                Winner: 3,
+            results: fantasy.Results{
+                MpoWinner: 3,
                 Podiums: []int64{1, 2},
                 Top10s: []int64{4,5},
                 HotRounds: map[int][]int64{1: {6}},
@@ -269,8 +278,8 @@ func TestEventScores(t *testing.T) {
         {
             name:   "Calculates winner, podiums, 1 top 10, multiple hot round",
             config: testConfig,
-            results: scoring.Results{
-                Winner: 3,
+            results: fantasy.Results{
+                MpoWinner: 3,
                 Podiums: []int64{1, 2},
                 Top10s: []int64{4,5},
                 HotRounds: map[int][]int64{1: {6}, 2: {1,2}},
@@ -280,8 +289,8 @@ func TestEventScores(t *testing.T) {
         {
             name:   "Calculates winner, podiums, 1 top 10, multiple hot round, birdies",
             config: testConfig,
-            results: scoring.Results{
-                Winner: 3,
+            results: fantasy.Results{
+                MpoWinner: 3,
                 Podiums: []int64{1, 2},
                 Top10s: []int64{4,5},
                 HotRounds: map[int][]int64{1: {6}, 2: {1,2}},
@@ -292,8 +301,8 @@ func TestEventScores(t *testing.T) {
         {
             name:   "Calculates winner, podiums, 1 top 10, multiple hot round, birdies, eagles",
             config: testConfig,
-            results: scoring.Results{
-                Winner: 3,
+            results: fantasy.Results{
+                MpoWinner: 3,
                 Podiums: []int64{1, 2},
                 Top10s: []int64{4,5},
                 HotRounds: map[int][]int64{1: {6}, 2: {1,2}},
@@ -305,8 +314,8 @@ func TestEventScores(t *testing.T) {
         {
             name:   "Calculates winner, podiums, 1 top 10, multiple hot round, birdies, eagles, bogeys",
             config: testConfig,
-            results: scoring.Results{
-                Winner: 3,
+            results: fantasy.Results{
+                MpoWinner: 3,
                 Podiums: []int64{1, 2},
                 Top10s: []int64{4,5},
                 HotRounds: map[int][]int64{1: {6}, 2: {1,2}},
@@ -319,8 +328,8 @@ func TestEventScores(t *testing.T) {
         {
             name:   "Calculates winner, podiums, 1 top 10, multiple hot round, birdies, eagles, bogeys, doubles",
             config: testConfig,
-            results: scoring.Results{
-                Winner: 3,
+            results: fantasy.Results{
+                MpoWinner: 3,
                 Podiums: []int64{1, 2},
                 Top10s: []int64{4,5},
                 HotRounds: map[int][]int64{1: {6}, 2: {1,2}},
@@ -334,8 +343,8 @@ func TestEventScores(t *testing.T) {
         {
             name:   "Calculates podiums, 1 top 10, multiple hot round, birdies, eagles, bogeys, doubles",
             config: testConfig,
-            results: scoring.Results{
-                Winner: 10,
+            results: fantasy.Results{
+                MpoWinner: 10,
                 Podiums: []int64{1, 2},
                 Top10s: []int64{4,5},
                 HotRounds: map[int][]int64{1: {6}, 2: {1,2}},
@@ -347,7 +356,7 @@ func TestEventScores(t *testing.T) {
             expected: 8.25,
         },
     }
-    team := scoring.CurrentTeam {
+    team := fantasy.CurrentTeam {
         Players: []int64{1,2,3,4,6},
     }
 

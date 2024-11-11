@@ -16,6 +16,16 @@ func TestMapSlices(t *testing.T) {
     assertSlicesAreSame(t, expected, doubled)
 }
 
+func TestFilterSlices(t *testing.T) {
+    source := []int{1, 2, 3, 4, 5, 6}
+    onlyEven := utils.FilterSlice(source, func(item int) bool {
+        return item % 2 == 0
+    })
+
+    expected := []int{2, 4, 6}
+    assertSlicesAreSame(t, expected, onlyEven)
+}
+
 func assertSlicesAreSame(t *testing.T, expected []int, actual []int) {
     if len(expected) != len(actual) {
         t.Fatalf("len(expected) != len(actual): expected: %d; got: %d", len(expected), len(actual))
