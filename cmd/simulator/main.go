@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -55,8 +54,6 @@ func main() {
         log.Fatal(err)
     }
     
-    fmt.Printf("going to run simulator on %d\n", scoreConfig.RoundBirdies.Length)
-    fmt.Printf("config is %v\n", scoreConfig)
     sim := simulator.NewSimulator(scoreConfig, teams, unmarshalTournaments(tournamentsFile), db)
     sim.Run()
 }

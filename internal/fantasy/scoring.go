@@ -107,6 +107,10 @@ func (team CurrentTeam) CalculateTeamBirdies(config TimesConfig, results Results
 }
 
 func (team CurrentTeam) CalculateTeamBirdiesBetter(config TimesConfig, results Results) float64 {
+    // fmt.Printf("Number Results for birdies or better: %d\n", len(results.RoundEaglesBetter))
+    // for _, data := range results.RoundEaglesBetter {
+    //     fmt.Printf("Number of players in the eagles or better category: %d\n", len(data))
+    // }
     return team.calculateRoundScore(config, results.RoundEaglesBetter)
 }
 

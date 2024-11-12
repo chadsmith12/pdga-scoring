@@ -35,15 +35,21 @@ type Simulator struct {
     teams fantasy.Teams
     tournaments []int64
     repo repository.Queries
+    teamResults map[int]float64
 }
 
 func NewSimulator(config fantasy.ScoringConfig, teams fantasy.Teams, tournaments []int64, db repository.DBTX) *Simulator {
     query := repository.New(db)
+    teamResults := make(map[int]float64)
+    for i := range teams {
+        teamResults[i] = 0
+    }
     return &Simulator{
     	scoringConfig: config,
     	teams:         teams,
     	tournaments:   tournaments,
         repo: *query,
+        teamResults: teamResults,
     }
 }
 
@@ -51,6 +57,10 @@ func (sim *Simulator) Run() {
     for _, tournamentId := range sim.tournaments {
         sim.scoreTournament(tournamentId)     
     }
+
+    fmt.Printf("After Simulation: \n")
+    fmt.Printf("John: %2f\n", sim.teamResults[0])
+    fmt.Printf("Chad: %2f\n", sim.teamResults[1])
 }
 
 func (sim *Simulator) scoreTournament(tournamentId int64) {
@@ -64,12 +74,10 @@ func (sim *Simulator) scoreTournament(tournamentId int64) {
         currentTeams = append(currentTeams, team.Team.CreateTeam(mpoPlayers, fpoPlayers))
     }
     tournamentResults := sim.collectTournamentResults(tournamentId, currentTeams)
-    for _, currentTeam := range currentTeams {
+    for i, currentTeam := range currentTeams {
         currentScore := currentTeam.ScoreTeam(sim.scoringConfig, tournamentResults)
-        fmt.Printf("For TournamentId %d a team scored: %2f\n", tournamentId, currentScore)
+        sim.teamResults[i] += currentScore
     }
-
-    fmt.Println("---------------------------------")
 }
 
 
@@ -91,6 +99,7 @@ func (sim *Simulator) collectTournamentResults(tournamentId int64, currentTeams 
     	TournamentID: tournamentId,
     	PlayerIds:    teamPlayers,
     })
+    // fmt.Printf("Number of hole scores are: %d\n", len(scores))
 
     results.MpoWinner = getWinner(top10, pdga.Mpo).PlayerID
     results.FpoWinner = getWinner(top10, pdga.Fpo).PlayerID
@@ -101,7 +110,7 @@ func (sim *Simulator) collectTournamentResults(tournamentId int64, currentTeams 
     results.RoundEaglesBetter = getRoundScores(scores, betterThanBirdies)
     results.RoundBogeys = getRoundScores(scores, onlyBogeys)
     results.RoundDoubleWorse = getRoundScores(scores, onlyBogeys)
-
+    
     return results
 }
 
@@ -150,10 +159,13 @@ func mapHotRounds(results []repository.GetHotRoundsForTournamentRow) map[int][]i
 func getRoundScores(results []repository.HoleScore, filter scoreFilter) []map[int64]int {
     groupedPlayers := groupBy(results)
     roundNumbers := getRoundNumbers(results)
+    // fmt.Printf("Number of groups: %d\n", len(groupedPlayers))
+    // fmt.Printf("Number of rounds: %d\n", len(roundNumbers))
 
     roundPlayerScores := make([]map[int64]int, len(roundNumbers))
     for i, round := range roundNumbers {
         roundPlayerScores[i] = make(map[int64]int)
+        // fmt.Printf("Number grouped players in round: %d\n", len(groupedPlayers[round]))
         for player, scores := range groupedPlayers[round] {
             count := 0
             for _, score := range scores {
@@ -161,6 +173,7 @@ func getRoundScores(results []repository.HoleScore, filter scoreFilter) []map[in
                     count++
                 }
             }
+            // fmt.Printf("The total count was: %d\n", count)
             roundPlayerScores[i][player] = count
         }
     }
@@ -184,7 +197,7 @@ func groupBy(results []repository.HoleScore) roundPlayerGrouping {
 func getRoundNumbers(results []repository.HoleScore) []int32 {
     roundNumbers := make([]int32, 0, 10)
     for _, result := range results {
-        if !slices.Contains(roundNumbers, result.HoleNumber) {
+        if !slices.Contains(roundNumbers, result.RoundNumber) {
             roundNumbers = append(roundNumbers, result.RoundNumber)
         }
     }
