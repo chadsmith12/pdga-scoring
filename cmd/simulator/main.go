@@ -56,6 +56,7 @@ func main() {
     
     sim := simulator.NewSimulator(scoreConfig, teams, unmarshalTournaments(tournamentsFile), db)
     sim.Run()
+    sim.ExportResults()
 }
 
 func unmarshalTournaments(r io.Reader) []int64 {

@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"io"
 	"slices"
+	"strconv"
 )
+
+var ScoringHeaders = []string{"Event Winner", "Podiums", "Top 10s", "Hot Rounds", "Birdies", "Eagles Or Better", "Bogeys", "Double or Worse", "Total Score"}
 
 type ScoringConfig struct {
     EventWinner float64 `json:"EventWinner"`
@@ -15,6 +18,32 @@ type ScoringConfig struct {
     EaglesOrBetter TimesConfig `json:"EaglesOrBetter"`
     Bogeys TimesConfig `json:"Bogeys"`
     DoubleOrWorse TimesConfig `json:"DoubleOrWorse"`
+}
+
+type TournamentScoring struct {
+    EventWinner float64 
+    Podiums float64
+    Top10s float64
+    HotRound float64
+    RoundBirdies float64 
+    EaglesOrBetter float64
+    Bogeys float64
+    DoubleOrWorse float64 
+    TotalScore float64
+}
+
+func (t TournamentScoring) Strings() []string {
+   return []string{
+        strconv.FormatFloat(t.EventWinner, 'f', -1, 64),
+        strconv.FormatFloat(t.Podiums, 'f', -1, 64),
+        strconv.FormatFloat(t.Top10s, 'f', -1, 64),
+        strconv.FormatFloat(t.HotRound, 'f', -1, 64),
+        strconv.FormatFloat(t.RoundBirdies, 'f', -1, 64),
+        strconv.FormatFloat(t.EaglesOrBetter, 'f', -1, 64),
+        strconv.FormatFloat(t.Bogeys, 'f', -1, 64),
+        strconv.FormatFloat(t.DoubleOrWorse, 'f', -1, 64),
+        strconv.FormatFloat(t.TotalScore, 'f', -1, 64),
+    } 
 }
 
 type TimesConfig struct {
@@ -39,6 +68,32 @@ func ParseConfig(reader io.Reader) (ScoringConfig, error) {
     }
 
     return UnmarshalConfig(data)
+}
+
+func (team CurrentTeam) ScoreTournament(config ScoringConfig, results Results) TournamentScoring {
+    total := 0.0
+    tournamentScoring := TournamentScoring{}
+    if team.HasWinner(results) {
+        tournamentScoring.EventWinner = config.EventWinner
+        total += tournamentScoring.EventWinner
+    }
+    tournamentScoring.Podiums = config.Podiums * float64(team.NumberPodiums(results))
+    total += tournamentScoring.Podiums
+    tournamentScoring.Top10s = config.Top10s * float64(team.NumberTop10s(results))
+    total += tournamentScoring.Top10s
+    tournamentScoring.HotRound = config.HotRound * float64(team.NumberHotRounds(results))
+    total += tournamentScoring.HotRound
+    tournamentScoring.RoundBirdies = team.CalculateTeamBirdies(config.RoundBirdies, results)
+    total += tournamentScoring.RoundBirdies
+    tournamentScoring.EaglesOrBetter = team.CalculateTeamBirdiesBetter(config.EaglesOrBetter, results)
+    total += tournamentScoring.EaglesOrBetter
+    tournamentScoring.Bogeys = team.CalculateTeamBogeys(config.Bogeys, results)
+    total += tournamentScoring.Bogeys
+    tournamentScoring.DoubleOrWorse = team.CalculateTeamBogeyWorse(config.DoubleOrWorse, results)
+    total += tournamentScoring.DoubleOrWorse
+    
+    tournamentScoring.TotalScore = total
+    return tournamentScoring;
 }
 
 func (team CurrentTeam) ScoreTeam(config ScoringConfig, results Results) float64 {

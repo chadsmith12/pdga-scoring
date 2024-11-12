@@ -2,8 +2,10 @@ package simulator
 
 import (
 	"context"
+	"encoding/csv"
 	"fmt"
 	"log"
+	"os"
 	"slices"
 
 	"github.com/chadsmith12/pdga-scoring/internal/fantasy"
@@ -36,6 +38,7 @@ type Simulator struct {
     tournaments []int64
     repo repository.Queries
     teamResults map[int]float64
+    tournamentScoring map[int][]fantasy.TournamentScoring
 }
 
 func NewSimulator(config fantasy.ScoringConfig, teams fantasy.Teams, tournaments []int64, db repository.DBTX) *Simulator {
@@ -50,6 +53,7 @@ func NewSimulator(config fantasy.ScoringConfig, teams fantasy.Teams, tournaments
     	tournaments:   tournaments,
         repo: *query,
         teamResults: teamResults,
+        tournamentScoring: make(map[int][]fantasy.TournamentScoring),
     }
 }
 
@@ -61,6 +65,23 @@ func (sim *Simulator) Run() {
     fmt.Printf("After Simulation: \n")
     fmt.Printf("John: %2f\n", sim.teamResults[0])
     fmt.Printf("Chad: %2f\n", sim.teamResults[1])
+}
+
+func (sim *Simulator) ExportResults() {
+    for i, scoring := range sim.tournamentScoring {
+        csvFile, err := os.Create(fmt.Sprintf("%d-team.csv", i))
+        if err != nil {
+            log.Println("Failed to create csv file for export")
+        }
+        csvWriter := csv.NewWriter(csvFile)
+        csvWriter.Write(fantasy.ScoringHeaders)
+        defer csvWriter.Flush()
+        for _, score := range scoring {
+            if err := csvWriter.Write(score.Strings()); err != nil {
+                fmt.Printf("failed to write row: %v\n", err)
+            }
+        }
+    }
 }
 
 func (sim *Simulator) scoreTournament(tournamentId int64) {
@@ -75,8 +96,9 @@ func (sim *Simulator) scoreTournament(tournamentId int64) {
     }
     tournamentResults := sim.collectTournamentResults(tournamentId, currentTeams)
     for i, currentTeam := range currentTeams {
-        currentScore := currentTeam.ScoreTeam(sim.scoringConfig, tournamentResults)
-        sim.teamResults[i] += currentScore
+        tournamentScores := currentTeam.ScoreTournament(sim.scoringConfig, tournamentResults)
+        sim.tournamentScoring[i] = append(sim.tournamentScoring[i], tournamentScores)
+        sim.teamResults[i] += tournamentScores.TotalScore
     }
 }
 
