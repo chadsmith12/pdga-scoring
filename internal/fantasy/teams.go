@@ -39,15 +39,16 @@ func LoadTeams(reader io.Reader) (Teams, error) {
 
 type Team struct {
 	Name string   `json:"Name"`
-	Team FantasyTeam `json:"Team"`
+	Team FantasyPlayers `json:"Team"`
 }
 
-type FantasyTeam struct {
+type FantasyPlayers struct {
 	Players []int64 `json:"Players"`
 	Bench   []int64 `json:"Bench"`
 }
 
 type CurrentTeam struct {
+    Name string
     MpoPlayers []int64
     FpoPlayers []int64
     Players []int64
@@ -65,14 +66,15 @@ type Results struct {
     RoundDoubleWorse []map[int64]int
 }
 
-func (ft FantasyTeam) CreateTeam(mpoPlayers []int64, fpoPlayers []int64) CurrentTeam {
+func (ft Team) CreateTeam(mpoPlayers []int64, fpoPlayers []int64) CurrentTeam {
     currentTeam := CurrentTeam{
+        Name: ft.Name,
         MpoPlayers: make([]int64, 0, 3),
         FpoPlayers: make([]int64, 0, 2),
         Players: make([]int64, 0, 5),
     }
 
-    for _, pdgaNumber := range ft.Players {
+    for _, pdgaNumber := range ft.Team.Players {
         if slices.Contains(mpoPlayers, pdgaNumber) {
             currentTeam.MpoPlayers = append(currentTeam.MpoPlayers, pdgaNumber)
             currentTeam.Players = append(currentTeam.Players, pdgaNumber)
@@ -88,12 +90,12 @@ func (ft FantasyTeam) CreateTeam(mpoPlayers []int64, fpoPlayers []int64) Current
     }
 
     if len(currentTeam.FpoPlayers) < 2 {
-        currentTeam.FpoPlayers = append(currentTeam.FpoPlayers, ft.Bench[0])
-        currentTeam.Players = append(currentTeam.Players, ft.Bench[0])
+        currentTeam.FpoPlayers = append(currentTeam.FpoPlayers, ft.Team.Bench[0])
+        currentTeam.Players = append(currentTeam.Players, ft.Team.Bench[0])
     }
     if len(currentTeam.MpoPlayers) < 3 {
-        currentTeam.MpoPlayers = append(currentTeam.MpoPlayers, ft.Bench[1])
-        currentTeam.Players = append(currentTeam.Players, ft.Bench[1])
+        currentTeam.MpoPlayers = append(currentTeam.MpoPlayers, ft.Team.Bench[1])
+        currentTeam.Players = append(currentTeam.Players, ft.Team.Bench[1])
     }
 
     return currentTeam

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"slices"
 
 	"github.com/chadsmith12/pdga-scoring/internal/fantasy"
@@ -37,15 +38,17 @@ type Simulator struct {
     teams fantasy.Teams
     tournaments []int64
     repo repository.Queries
-    teamResults map[int]float64
-    tournamentScoring map[int][]fantasy.TournamentScoring
+    teamResults map[string]float64
+    tournamentScoring map[string][]fantasy.TournamentScoring
+    name string
 }
 
-func NewSimulator(config fantasy.ScoringConfig, teams fantasy.Teams, tournaments []int64, db repository.DBTX) *Simulator {
+func NewSimulator(config fantasy.ScoringConfig, teams fantasy.Teams, tournaments []int64, db repository.DBTX, name string) *Simulator {
     query := repository.New(db)
-    teamResults := make(map[int]float64)
-    for i := range teams {
-        teamResults[i] = 0
+    teamResults := make(map[string]float64)
+    for _, team := range teams {
+        fmt.Printf("Team Name is %s\n", team.Name)
+        teamResults[team.Name] = 0
     }
     return &Simulator{
     	scoringConfig: config,
@@ -53,7 +56,8 @@ func NewSimulator(config fantasy.ScoringConfig, teams fantasy.Teams, tournaments
     	tournaments:   tournaments,
         repo: *query,
         teamResults: teamResults,
-        tournamentScoring: make(map[int][]fantasy.TournamentScoring),
+        tournamentScoring: make(map[string][]fantasy.TournamentScoring),
+        name: name,
     }
 }
 
@@ -63,15 +67,21 @@ func (sim *Simulator) Run() {
     }
 
     fmt.Printf("After Simulation: \n")
-    fmt.Printf("John: %2f\n", sim.teamResults[0])
-    fmt.Printf("Chad: %2f\n", sim.teamResults[1])
+    for team, result := range sim.teamResults {
+        fmt.Printf("%s: %2f\n", team, result)
+    }
 }
 
 func (sim *Simulator) ExportResults() {
-    for i, scoring := range sim.tournamentScoring {
-        csvFile, err := os.Create(fmt.Sprintf("%d-team.csv", i))
+    csvPath := path.Join("results/", sim.name)
+    err := os.MkdirAll(csvPath, 0700)
+    if err != nil {
+        log.Printf("Failed to create the results directory: %v\n", err)
+    }
+    for name, scoring := range sim.tournamentScoring {
+        csvFile, err := os.Create(fmt.Sprintf("%s/%s-%s-results.csv", csvPath, sim.name, name))
         if err != nil {
-            log.Println("Failed to create csv file for export")
+            log.Printf("Failed to create csv file for export: %v\n", err)
         }
         csvWriter := csv.NewWriter(csvFile)
         csvWriter.Write(fantasy.ScoringHeaders)
@@ -92,13 +102,13 @@ func (sim *Simulator) scoreTournament(tournamentId int64) {
     mpoPlayers, fpoPlayers := partitionPlayers(tournamentPlayers)
     currentTeams := make([]fantasy.CurrentTeam, 0, 2)
     for _, team := range sim.teams {
-        currentTeams = append(currentTeams, team.Team.CreateTeam(mpoPlayers, fpoPlayers))
+        currentTeams = append(currentTeams, team.CreateTeam(mpoPlayers, fpoPlayers))
     }
     tournamentResults := sim.collectTournamentResults(tournamentId, currentTeams)
-    for i, currentTeam := range currentTeams {
+    for _, currentTeam := range currentTeams {
         tournamentScores := currentTeam.ScoreTournament(sim.scoringConfig, tournamentResults)
-        sim.tournamentScoring[i] = append(sim.tournamentScoring[i], tournamentScores)
-        sim.teamResults[i] += tournamentScores.TotalScore
+        sim.tournamentScoring[currentTeam.Name] = append(sim.tournamentScoring[currentTeam.Name], tournamentScores)
+        sim.teamResults[currentTeam.Name] += tournamentScores.TotalScore
     }
 }
 

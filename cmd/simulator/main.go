@@ -23,7 +23,8 @@ func main() {
     }
     teamsPath := flag.String("teams", "", "Path to a json file that defines the teams to use for this simulation")
     configPath := flag.String("config", "", "Path to the json file that defines the scoring config for the simulation")
-    tournamentsPath := flag.String("tournaments", "2024.json", "Path to the json file that lists the tournaments to use for the simulation") 
+    tournamentsPath := flag.String("tournaments", "2024.json", "Path to the json file that lists the tournaments to use for the simulation")
+    simName := flag.String("name", "", "The name of this simulation to run")
 
     flag.Parse()
 
@@ -54,7 +55,7 @@ func main() {
         log.Fatal(err)
     }
     
-    sim := simulator.NewSimulator(scoreConfig, teams, unmarshalTournaments(tournamentsFile), db)
+    sim := simulator.NewSimulator(scoreConfig, teams, unmarshalTournaments(tournamentsFile), db, *simName)
     sim.Run()
     sim.ExportResults()
 }
