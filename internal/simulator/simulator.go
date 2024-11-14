@@ -159,7 +159,7 @@ func getWinner(results []repository.GetTop10ByTournamentRow, division pdga.Divis
 func getPodiums(results []repository.GetTop10ByTournamentRow) []int64 {
     podiums := make([]int64, 0, 6)
     for _, result := range results {
-        if result.Rank > 1 && result.Rank <= 3 {
+        if result.Rank <= 3 {
             podiums = append(podiums, result.PlayerID)
         }
     }
@@ -170,7 +170,7 @@ func getPodiums(results []repository.GetTop10ByTournamentRow) []int64 {
 func getTop10(results []repository.GetTop10ByTournamentRow) []int64 {
     top10 := make([]int64, 0, 20) 
     for _, result := range results {
-        if result.Rank > 3 && result.Rank <= 10 {
+        if result.Rank <= 10 {
             top10 = append(top10, result.PlayerID)
         }
     }

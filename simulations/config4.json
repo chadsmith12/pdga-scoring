@@ -1,0 +1,22 @@
+{
+	"EventWinner": 25,
+	"Podiums": 15,
+	"Top10s": 10,
+	"HotRound": 5,
+	"RoundBirdies": {
+	  "Length": 2,
+	  "Score": 1
+	},
+	"EaglesOrBetter": {
+	  "Length": 1,
+	  "Score": 1
+	},
+	"Bogeys": {
+	  "Length": 2,
+	  "Score": -1
+	},
+	"DoubleOrWorse": {
+	  "Length": 1,
+	  "Score": -1
+	}
+}
