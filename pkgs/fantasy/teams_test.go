@@ -3,7 +3,7 @@ package fantasy_test
 import (
 	"testing"
 
-	"github.com/chadsmith12/pdga-scoring/internal/fantasy"
+	"github.com/chadsmith12/pdga-scoring/pkgs/fantasy"
 )
 
 type teamTestRun struct {

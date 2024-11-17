@@ -8,8 +8,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/chadsmith12/pdga-scoring/pkgs/fantasy"
 	"github.com/chadsmith12/pdga-scoring/internal/database"
-	"github.com/chadsmith12/pdga-scoring/internal/fantasy"
 	"github.com/chadsmith12/pdga-scoring/internal/simulator"
 	"github.com/joho/godotenv"
 )

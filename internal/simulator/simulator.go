@@ -9,7 +9,7 @@ import (
 	"path"
 	"slices"
 
-	"github.com/chadsmith12/pdga-scoring/internal/fantasy"
+	"github.com/chadsmith12/pdga-scoring/pkgs/fantasy"
 	"github.com/chadsmith12/pdga-scoring/internal/repository"
 	"github.com/chadsmith12/pdga-scoring/pkgs/pdga"
 )
