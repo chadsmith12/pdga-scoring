@@ -34,7 +34,7 @@ func main() {
     if err != nil {
 	log.Fatal(err)
     }
-
+    
     if err := migrator.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
         log.Fatal(err)
     }
