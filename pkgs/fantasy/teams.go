@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io"
 	"slices"
+
+	"github.com/chadsmith12/pdga-scoring/pkgs/pdga"
 )
 
 type Teams []Team
@@ -64,6 +66,35 @@ type Results struct {
     RoundEaglesBetter []map[int64]int
     RoundBogeys []map[int64]int
     RoundDoubleWorse []map[int64]int
+}
+
+// Returns the number of hot rounds a certain player had in the tournament
+func (r *Results) PlayerHotRounds(playerId int64) int {
+    numberHotRounds := 0
+    for _, round := range r.HotRounds {
+        if slices.Contains(round, playerId) {
+            numberHotRounds++
+        } 
+    }
+
+    return numberHotRounds
+}
+
+// Creates team from a single player.
+// Pass in the division the player was in to be sure they are added to the correct division for the team slot
+func SingleTeam(playerId int64, division pdga.Division) CurrentTeam {
+    if division == pdga.Mpo {
+        return CurrentTeam {
+            MpoPlayers: []int64{playerId},
+            Players: []int64{playerId},
+        }
+    }
+
+
+    return CurrentTeam {
+        FpoPlayers: []int64{playerId},
+        Players: []int64{playerId},
+    }
 }
 
 func (ft Team) CreateTeam(mpoPlayers []int64, fpoPlayers []int64) CurrentTeam {

@@ -8,9 +8,11 @@ import (
 	"os"
 	"path"
 	"slices"
+	"sync"
 
-	"github.com/chadsmith12/pdga-scoring/pkgs/fantasy"
+	"github.com/chadsmith12/pdga-scoring/internal/database"
 	"github.com/chadsmith12/pdga-scoring/internal/repository"
+	"github.com/chadsmith12/pdga-scoring/pkgs/fantasy"
 	"github.com/chadsmith12/pdga-scoring/pkgs/pdga"
 )
 
@@ -104,6 +106,27 @@ func (sim *Simulator) scoreTournament(tournamentId int64) {
     for _, team := range sim.teams {
         currentTeams = append(currentTeams, team.CreateTeam(mpoPlayers, fpoPlayers))
     }
+
+    wg := sync.WaitGroup{}
+    for _, player := range tournamentPlayers {
+        wg.Add(1)
+        go func() {
+            defer wg.Done()
+            team := fantasy.SingleTeam(player.PlayerID, pdga.Division(player.Division))
+            playerResults := sim.collectTournamentResults(tournamentId, []fantasy.CurrentTeam{team})
+            sim.repo.InsertFantasyTournamentScores(context.Background(), []repository.InsertFantasyTournamentScoresParams{
+                {
+                    PlayerID: database.BigIntToPgInt8(player.PlayerID),
+                    TournamentID: database.BigIntToPgInt8(tournamentId),
+                    WonEvent: database.BoolToPgBool(team.HasWinner(playerResults)),
+                    PodiumFinish: database.BoolToPgBool(team.NumberPodiums(playerResults) > 0),
+                    Top10Finish: database.BoolToPgBool(team.NumberTop10s(playerResults) > 0),
+                    HotRounds: database.IntToPgInt(playerResults.PlayerHotRounds(player.PlayerID)),
+                },
+            }) 
+        }()
+    }
+
     tournamentResults := sim.collectTournamentResults(tournamentId, currentTeams)
     for _, currentTeam := range currentTeams {
         tournamentScores := currentTeam.ScoreTournament(sim.scoringConfig, tournamentResults)
