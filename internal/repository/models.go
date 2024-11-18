@@ -10,6 +10,27 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type FantasyRoundScore struct {
+	ID                  int64
+	PlayerID            pgtype.Int8
+	TournamentID        pgtype.Int8
+	RoundNumber         pgtype.Int4
+	Birdies             pgtype.Int4
+	EaglesOrBetter      pgtype.Int4
+	Bogeys              pgtype.Int4
+	DoubleOrWorseBogeys pgtype.Int4
+}
+
+type FantasyTournamentScore struct {
+	ID           int64
+	PlayerID     pgtype.Int8
+	TournamentID pgtype.Int8
+	WonEvent     pgtype.Bool
+	PodiumFinish pgtype.Bool
+	Top10Finish  pgtype.Bool
+	HotRounds    pgtype.Int4
+}
+
 type HoleScore struct {
 	ID                 int64
 	PlayerID           int64

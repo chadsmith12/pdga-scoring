@@ -258,3 +258,121 @@ func (b *CreateRoundScoresBatchResults) Close() error {
 	b.closed = true
 	return b.br.Close()
 }
+
+const insertFantasyRoundScores = `-- name: InsertFantasyRoundScores :batchexec
+insert into fantasy_round_scores (player_id, tournament_id, round_number, birdies, eagles_or_better, bogeys, double_or_worse_bogeys)
+values ($1, $2, $3, $4, $5, $6, $7)
+`
+
+type InsertFantasyRoundScoresBatchResults struct {
+	br     pgx.BatchResults
+	tot    int
+	closed bool
+}
+
+type InsertFantasyRoundScoresParams struct {
+	PlayerID            pgtype.Int8
+	TournamentID        pgtype.Int8
+	RoundNumber         pgtype.Int4
+	Birdies             pgtype.Int4
+	EaglesOrBetter      pgtype.Int4
+	Bogeys              pgtype.Int4
+	DoubleOrWorseBogeys pgtype.Int4
+}
+
+func (q *Queries) InsertFantasyRoundScores(ctx context.Context, arg []InsertFantasyRoundScoresParams) *InsertFantasyRoundScoresBatchResults {
+	batch := &pgx.Batch{}
+	for _, a := range arg {
+		vals := []interface{}{
+			a.PlayerID,
+			a.TournamentID,
+			a.RoundNumber,
+			a.Birdies,
+			a.EaglesOrBetter,
+			a.Bogeys,
+			a.DoubleOrWorseBogeys,
+		}
+		batch.Queue(insertFantasyRoundScores, vals...)
+	}
+	br := q.db.SendBatch(ctx, batch)
+	return &InsertFantasyRoundScoresBatchResults{br, len(arg), false}
+}
+
+func (b *InsertFantasyRoundScoresBatchResults) Exec(f func(int, error)) {
+	defer b.br.Close()
+	for t := 0; t < b.tot; t++ {
+		if b.closed {
+			if f != nil {
+				f(t, ErrBatchAlreadyClosed)
+			}
+			continue
+		}
+		_, err := b.br.Exec()
+		if f != nil {
+			f(t, err)
+		}
+	}
+}
+
+func (b *InsertFantasyRoundScoresBatchResults) Close() error {
+	b.closed = true
+	return b.br.Close()
+}
+
+const insertFantasyTournamentScores = `-- name: InsertFantasyTournamentScores :batchexec
+insert into fantasy_tournament_scores (player_id, tournament_id, won_event, podium_finish, top_10_finish, hot_rounds)
+values ($1, $2, $3, $4, $5, $6)
+`
+
+type InsertFantasyTournamentScoresBatchResults struct {
+	br     pgx.BatchResults
+	tot    int
+	closed bool
+}
+
+type InsertFantasyTournamentScoresParams struct {
+	PlayerID     pgtype.Int8
+	TournamentID pgtype.Int8
+	WonEvent     pgtype.Bool
+	PodiumFinish pgtype.Bool
+	Top10Finish  pgtype.Bool
+	HotRounds    pgtype.Int4
+}
+
+func (q *Queries) InsertFantasyTournamentScores(ctx context.Context, arg []InsertFantasyTournamentScoresParams) *InsertFantasyTournamentScoresBatchResults {
+	batch := &pgx.Batch{}
+	for _, a := range arg {
+		vals := []interface{}{
+			a.PlayerID,
+			a.TournamentID,
+			a.WonEvent,
+			a.PodiumFinish,
+			a.Top10Finish,
+			a.HotRounds,
+		}
+		batch.Queue(insertFantasyTournamentScores, vals...)
+	}
+	br := q.db.SendBatch(ctx, batch)
+	return &InsertFantasyTournamentScoresBatchResults{br, len(arg), false}
+}
+
+func (b *InsertFantasyTournamentScoresBatchResults) Exec(f func(int, error)) {
+	defer b.br.Close()
+	for t := 0; t < b.tot; t++ {
+		if b.closed {
+			if f != nil {
+				f(t, ErrBatchAlreadyClosed)
+			}
+			continue
+		}
+		_, err := b.br.Exec()
+		if f != nil {
+			f(t, err)
+		}
+	}
+}
+
+func (b *InsertFantasyTournamentScoresBatchResults) Close() error {
+	b.closed = true
+	return b.br.Close()
+}
