@@ -91,6 +91,9 @@ func (service *TournamentExtrator) insertHoleScores(ctx context.Context, tournam
 	for _, poolRound := range fullRound {
 		for _, round := range poolRound.Data.RoundData {
 			for _, score := range round.Scores {
+				if score.HasRoundScore == 0 {
+					continue
+				}
 				playerScores := score.HoleResults(round.Holes)
 				for _, holeResult := range playerScores {
 					holeScore := repository.CreateHoleScoresParams{
@@ -123,6 +126,9 @@ func (service *TournamentExtrator) insertRoundScores(ctx context.Context, tourna
 	for _, poolRound := range fullRound {
 		for _, round := range poolRound.Data.RoundData {
 			for _, score := range round.Scores {
+				if score.HasRoundScore == 0 {
+					continue
+				}
 				roundScore := repository.CreateRoundScoresParams{
 					PlayerID:     score.PDGANum,
 					TournamentID: tournamentId,

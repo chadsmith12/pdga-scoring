@@ -114,6 +114,23 @@ func (sim *Simulator) scoreTournament(tournamentId int64) {
             defer wg.Done()
             team := fantasy.SingleTeam(player.PlayerID, pdga.Division(player.Division))
             playerResults := sim.collectTournamentResults(tournamentId, []fantasy.CurrentTeam{team})
+            for _, roundResult := range playerResults.RoundResults {
+                playerBatch := sim.repo.InsertFantasyRoundScores(context.Background(), []repository.InsertFantasyRoundScoresParams{
+                    {
+                        PlayerID: database.BigIntToPgInt8(player.PlayerID),
+                        RoundNumber: database.IntToPgInt(int(roundResult.RoundNumber())),
+                        TournamentID: database.BigIntToPgInt8(tournamentId),
+                        Birdies: database.IntToPgInt(roundResult.BirdiesForPlayer(player.PlayerID)),
+                        EaglesOrBetter: database.IntToPgInt(roundResult.EaglesBetterForPlayer(player.PlayerID)),
+                        Bogeys: database.IntToPgInt(roundResult.BogeysForPlayer(player.PlayerID)),
+                    },
+                })
+                playerBatch.Exec(func(i int, err error) {
+                    if err != nil {
+                        fmt.Printf("error inserting %d of fantasy round score: %v\n", i, err)
+                    }
+                })
+            }
             batch := sim.repo.InsertFantasyTournamentScores(context.Background(), []repository.InsertFantasyTournamentScoresParams{
                 {
                     PlayerID: database.BigIntToPgInt8(player.PlayerID),

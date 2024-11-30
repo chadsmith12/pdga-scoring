@@ -83,6 +83,10 @@ func NewRoundResult(roundNumber int32, birdies, eaglesBetter, bogeys, doubleWors
     }
 }
 
+func (r *RoundResult) RoundNumber() int32 {
+    return r.roundNumber
+}
+
 func (r *RoundResult) BirdiesForPlayer(playerId int64) int {
     return r.playerBirdies[playerId]
 }

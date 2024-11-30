@@ -7,13 +7,6 @@ import (
 	"gotest.tools/assert"
 )
 
-type testRun struct {
-	name     string
-	config   fantasy.ScoringConfig
-	results  fantasy.Results
-	expected float64
-}
-
 var testConfig = fantasy.ScoringConfig{
 	EventWinner:    5,
 	Podiums:        3,
