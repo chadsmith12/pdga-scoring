@@ -9,6 +9,20 @@ import (
 
 var ScoringHeaders = []string{"Event Winner", "Podiums", "Top 10s", "Hot Rounds", "Birdies", "Eagles Or Better", "Bogeys", "Double or Worse", "Total Score"}
 
+type ScoreExtractor func(round RoundResult, playerId int64) int
+var Birdes ScoreExtractor = func(round RoundResult, playerId int64) int {
+    return round.BirdiesForPlayer(playerId)
+}
+var EaglesOrBetter ScoreExtractor = func(round RoundResult, playerId int64) int {
+    return round.EaglesBetterForPlayer(playerId)
+}
+var Bogeys ScoreExtractor = func(round RoundResult, playerId int64) int {
+    return round.BogeysForPlayer(playerId)
+}
+var DoubleBogeysOrWorse ScoreExtractor = func(round RoundResult, playerId int64) int {
+    return round.DoublesWorseForPlayer(playerId)
+}
+
 type ScoringConfig struct {
     EventWinner float64 `json:"EventWinner"`
     Podiums float64 `json:"Podiums"`
@@ -158,33 +172,26 @@ func (team CurrentTeam) NumberHotRounds(results Results) int {
 }
 
 func (team CurrentTeam) CalculateTeamBirdies(config TimesConfig, results Results) float64 {
-    return team.calculateRoundScore(config, results.RoundBirdies)
+    return team.calculateRoundScore(config, results.RoundResults, Birdes)
 }
 
 func (team CurrentTeam) CalculateTeamBirdiesBetter(config TimesConfig, results Results) float64 {
-    // fmt.Printf("Number Results for birdies or better: %d\n", len(results.RoundEaglesBetter))
-    // for _, data := range results.RoundEaglesBetter {
-    //     fmt.Printf("Number of players in the eagles or better category: %d\n", len(data))
-    // }
-    return team.calculateRoundScore(config, results.RoundEaglesBetter)
+    return team.calculateRoundScore(config, results.RoundResults, EaglesOrBetter)
 }
 
 func (team CurrentTeam) CalculateTeamBogeys(config TimesConfig, results Results) float64 {
-    return team.calculateRoundScore(config, results.RoundBogeys)
+    return team.calculateRoundScore(config, results.RoundResults, Bogeys)
 }
 
 func (team CurrentTeam) CalculateTeamBogeyWorse(config TimesConfig, results Results) float64 {
-    return team.calculateRoundScore(config, results.RoundDoubleWorse)
+    return team.calculateRoundScore(config, results.RoundResults, DoubleBogeysOrWorse)
 }
 
-func (team CurrentTeam) calculateRoundScore(config TimesConfig, roundScores []map[int64]int) float64 {
+func (team CurrentTeam) calculateRoundScore(config TimesConfig, rounds []RoundResult, scoreExtractor ScoreExtractor) float64 {
     points :=  0.0
     for _, player := range team.Players {
-        for _, round := range roundScores {
-            playerScore, ok := round[player]
-            if !ok {
-                continue
-            }
+        for _, round := range rounds {
+            playerScore := scoreExtractor(round, player)
             multiplier := playerScore / config.Length
             points += (float64(multiplier) * config.Score)
         }

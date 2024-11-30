@@ -61,12 +61,44 @@ type Results struct {
     FpoWinner int64
     Podiums []int64
     Top10s []int64
+    RoundResults []RoundResult
     HotRounds map[int][]int64
-    RoundBirdies []map[int64]int
-    RoundEaglesBetter []map[int64]int
-    RoundBogeys []map[int64]int
-    RoundDoubleWorse []map[int64]int
 }
+
+type RoundResult struct {
+    roundNumber int32
+    playerBirdies map[int64]int
+    playerEaglesBetter map[int64]int
+    playerBogeys map[int64]int
+    playerDoubleWorse map[int64]int
+}
+
+func NewRoundResult(roundNumber int32, birdies, eaglesBetter, bogeys, doubleWorse map[int64]int) RoundResult {
+    return RoundResult {
+        roundNumber: roundNumber,
+        playerBirdies: birdies,
+        playerEaglesBetter: eaglesBetter,
+        playerBogeys: bogeys,
+        playerDoubleWorse: doubleWorse,
+    }
+}
+
+func (r *RoundResult) BirdiesForPlayer(playerId int64) int {
+    return r.playerBirdies[playerId]
+}
+
+func (r *RoundResult) EaglesBetterForPlayer(playerId int64) int {
+    return r.playerEaglesBetter[playerId]
+}
+
+func (r *RoundResult) BogeysForPlayer(playerId int64) int {
+    return r.playerBogeys[playerId]
+}
+
+func (r *RoundResult) DoublesWorseForPlayer(playerId int64) int {
+    return r.playerDoubleWorse[playerId]
+}
+
 
 // Returns the number of hot rounds a certain player had in the tournament
 func (r *Results) PlayerHotRounds(playerId int64) int {

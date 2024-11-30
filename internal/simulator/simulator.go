@@ -114,7 +114,7 @@ func (sim *Simulator) scoreTournament(tournamentId int64) {
             defer wg.Done()
             team := fantasy.SingleTeam(player.PlayerID, pdga.Division(player.Division))
             playerResults := sim.collectTournamentResults(tournamentId, []fantasy.CurrentTeam{team})
-            sim.repo.InsertFantasyTournamentScores(context.Background(), []repository.InsertFantasyTournamentScoresParams{
+            batch := sim.repo.InsertFantasyTournamentScores(context.Background(), []repository.InsertFantasyTournamentScoresParams{
                 {
                     PlayerID: database.BigIntToPgInt8(player.PlayerID),
                     TournamentID: database.BigIntToPgInt8(tournamentId),
@@ -124,6 +124,11 @@ func (sim *Simulator) scoreTournament(tournamentId int64) {
                     HotRounds: database.IntToPgInt(playerResults.PlayerHotRounds(player.PlayerID)),
                 },
             }) 
+            batch.Exec(func(i int, err error) {
+                if err != nil {
+                    fmt.Printf("error inserting index %d of fantasy scores: %v\n", i, err)
+                }
+            })
         }()
     }
 
@@ -154,18 +159,25 @@ func (sim *Simulator) collectTournamentResults(tournamentId int64, currentTeams 
     	TournamentID: tournamentId,
     	PlayerIds:    teamPlayers,
     })
-    // fmt.Printf("Number of hole scores are: %d\n", len(scores))
+
+    roundNumbers := getRoundNumbers(scores)
 
     results.MpoWinner = getWinner(top10, pdga.Mpo).PlayerID
     results.FpoWinner = getWinner(top10, pdga.Fpo).PlayerID
     results.Podiums = getPodiums(top10)
     results.Top10s = getTop10(top10)
     results.HotRounds = mapHotRounds(hotRounds)
-    results.RoundBirdies = getRoundScores(scores, onlyBirdies)
-    results.RoundEaglesBetter = getRoundScores(scores, betterThanBirdies)
-    results.RoundBogeys = getRoundScores(scores, onlyBogeys)
-    results.RoundDoubleWorse = getRoundScores(scores, onlyBogeys)
-    
+
+    for _, roundNumber := range roundNumbers {
+        birdies := getRoundScoresByFilter(scores, roundNumber, onlyBirdies)        
+        eagles := getRoundScoresByFilter(scores, roundNumber, betterThanBirdies)
+        bogeys := getRoundScoresByFilter(scores, roundNumber, onlyBogeys)
+        doubles := getRoundScoresByFilter(scores, roundNumber, worseThanBogey)
+
+        roundResult := fantasy.NewRoundResult(roundNumber, birdies, eagles, bogeys, doubles)
+        results.RoundResults = append(results.RoundResults, roundResult)
+    }
+
     return results
 }
 
@@ -211,42 +223,15 @@ func mapHotRounds(results []repository.GetHotRoundsForTournamentRow) map[int][]i
     return hotRounds
 }
 
-func getRoundScores(results []repository.HoleScore, filter scoreFilter) []map[int64]int {
-    groupedPlayers := groupBy(results)
-    roundNumbers := getRoundNumbers(results)
-    // fmt.Printf("Number of groups: %d\n", len(groupedPlayers))
-    // fmt.Printf("Number of rounds: %d\n", len(roundNumbers))
-
-    roundPlayerScores := make([]map[int64]int, len(roundNumbers))
-    for i, round := range roundNumbers {
-        roundPlayerScores[i] = make(map[int64]int)
-        // fmt.Printf("Number grouped players in round: %d\n", len(groupedPlayers[round]))
-        for player, scores := range groupedPlayers[round] {
-            count := 0
-            for _, score := range scores {
-                if filter(score) {
-                    count++
-                }
-            }
-            // fmt.Printf("The total count was: %d\n", count)
-            roundPlayerScores[i][player] = count
+func getRoundScoresByFilter(scores []repository.HoleScore, roundNumber int32, filter scoreFilter) map[int64]int {
+    roundPlayerScores := make(map[int64]int)
+    for _, score := range scores {
+        if score.RoundNumber == roundNumber && filter(score) {
+            roundPlayerScores[score.PlayerID]++
         }
     }
 
     return roundPlayerScores
-}
-
-func groupBy(results []repository.HoleScore) roundPlayerGrouping {
-    groupedData := make(roundPlayerGrouping)
-
-    for _, result := range results {
-        if groupedData[result.RoundNumber] == nil {
-            groupedData[result.RoundNumber] = make(map[int64][]repository.HoleScore)
-        }
-        groupedData[result.RoundNumber][result.PlayerID] = append(groupedData[result.RoundNumber][result.PlayerID], result)
-    }
-
-    return groupedData
 }
 
 func getRoundNumbers(results []repository.HoleScore) []int32 {
