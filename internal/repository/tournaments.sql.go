@@ -50,3 +50,37 @@ func (q *Queries) CreateTournament(ctx context.Context, arg CreateTournamentPara
 	)
 	return i, err
 }
+
+const getAllTournaments = `-- name: GetAllTournaments :many
+select external_id, name, start_date, end_date, tier, location, country from tournaments
+where tier != 'C'
+order by start_date
+`
+
+func (q *Queries) GetAllTournaments(ctx context.Context) ([]Tournament, error) {
+	rows, err := q.db.Query(ctx, getAllTournaments)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Tournament
+	for rows.Next() {
+		var i Tournament
+		if err := rows.Scan(
+			&i.ExternalID,
+			&i.Name,
+			&i.StartDate,
+			&i.EndDate,
+			&i.Tier,
+			&i.Location,
+			&i.Country,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
