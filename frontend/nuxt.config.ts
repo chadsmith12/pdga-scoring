@@ -11,4 +11,7 @@ export default defineNuxtConfig({
     prefix: '',
     componentDir: './components/ui',
   },
+  runtimeConfig: {
+    proxyApi: 'http://localhost:4500/api'
+  }
 })
